@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "3b+dvLDLvIikCHXELHFw1xzDuawmh/lVVkI9zXpwuOs=",
+  "Source": "SnackTracker.Api",
+  "BasePath": "_content/SnackTracker.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
