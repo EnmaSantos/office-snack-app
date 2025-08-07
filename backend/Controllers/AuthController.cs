@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using SnackTracker.Api.Data;
 using SnackTracker.Api.Models;
 
-namespaxce SnackTracker.Api.Controllers
+namespace SnackTracker.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
