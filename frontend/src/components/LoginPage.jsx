@@ -32,3 +32,5 @@ function LoginPage({ onLogin }) {
     </Container>
   );
 }
+
+export default LoginPage;

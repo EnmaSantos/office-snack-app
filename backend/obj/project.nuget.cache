@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "LtMPyFx2Ets=",
+  "dgSpecHash": "5E3t0wyDoi8=",
   "success": true,
-  "projectFilePath": "/Users/enmanueldelossantoscruz/Library/CloudStorage/OneDrive-BYU-Idaho/Summer 2025/office-snack-app/backend/SnackTracker.Api.csproj",
+  "projectFilePath": "/Users/enmanueldelossantoscruz/Documents/Projects/office-snack-app/backend/SnackTracker.Api.csproj",
   "expectedPackageFiles": [
     "/Users/enmanueldelossantoscruz/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/Users/enmanueldelossantoscruz/.nuget/packages/microsoft.aspnetcore.authentication.google/9.0.8/microsoft.aspnetcore.authentication.google.9.0.8.nupkg.sha512",

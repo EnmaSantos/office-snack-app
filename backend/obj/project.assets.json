@@ -3615,11 +3615,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/enmanueldelossantoscruz/Library/CloudStorage/OneDrive-BYU-Idaho/Summer 2025/office-snack-app/backend/SnackTracker.Api.csproj",
+      "projectUniqueName": "/Users/enmanueldelossantoscruz/Documents/Projects/office-snack-app/backend/SnackTracker.Api.csproj",
       "projectName": "SnackTracker.Api",
-      "projectPath": "/Users/enmanueldelossantoscruz/Library/CloudStorage/OneDrive-BYU-Idaho/Summer 2025/office-snack-app/backend/SnackTracker.Api.csproj",
+      "projectPath": "/Users/enmanueldelossantoscruz/Documents/Projects/office-snack-app/backend/SnackTracker.Api.csproj",
       "packagesPath": "/Users/enmanueldelossantoscruz/.nuget/packages/",
-      "outputPath": "/Users/enmanueldelossantoscruz/Library/CloudStorage/OneDrive-BYU-Idaho/Summer 2025/office-snack-app/backend/obj/",
+      "outputPath": "/Users/enmanueldelossantoscruz/Documents/Projects/office-snack-app/backend/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/enmanueldelossantoscruz/.nuget/NuGet/NuGet.Config"
