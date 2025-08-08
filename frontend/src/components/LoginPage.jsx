@@ -3,18 +3,14 @@
 import React, { useEffect } from 'react';
 import { Button, Container, Typography, Box, Alert, Collapse } from '@mui/material';
 
-// The component now accepts 'error' and 'setError' props.
 function LoginPage({ onLogin, error, setError }) {
 
-  // This useEffect hook will run whenever the 'error' prop changes.
   useEffect(() => {
     if (error) {
-      // If there is an error, set a timer to clear it after 5 seconds.
       const timer = setTimeout(() => {
-        setError(''); // Clear the error message
-      }, 5000); // 5000 milliseconds = 5 seconds
+        setError('');
+      }, 5000);
 
-      // Cleanup function to clear the timer if the component unmounts
       return () => clearTimeout(timer);
     }
   }, [error, setError]);
@@ -34,9 +30,6 @@ function LoginPage({ onLogin, error, setError }) {
           Welcome to Snack Tracker
         </Typography>
 
-        {/* --- NEW ALERT COMPONENT --- */}
-        {/* The Collapse component provides a nice animation. */}
-        {/* The 'in' prop controls visibility based on whether 'error' has content. */}
         <Collapse in={!!error}>
             <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
                 {error}

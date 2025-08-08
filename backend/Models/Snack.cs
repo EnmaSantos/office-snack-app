@@ -1,3 +1,5 @@
+// File: backend/Models/Snack.cs
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -9,7 +11,6 @@ namespace SnackTracker.Api.Models
         public int SnackId { get; set; }
 
         [Required]
-        // FIX: Initialize to an empty string to satisfy the compiler.
         public string Name { get; set; } = string.Empty;
 
         [Required]
@@ -17,5 +18,14 @@ namespace SnackTracker.Api.Models
         public decimal Price { get; set; }
 
         public bool IsAvailable { get; set; } = true;
+
+        // --- NEW PROPERTIES ---
+
+        // The current stock level of the snack. Defaults to 0.
+        public int Stock { get; set; } = 0;
+
+        // The URL for the snack's image. This is nullable ('string?'),
+        // so it's an optional field.
+        public string? ImageUrl { get; set; }
     }
 }

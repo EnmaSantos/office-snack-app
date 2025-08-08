@@ -29,28 +29,32 @@ namespace SnackTracker.Api.Controllers
             return Ok(availableSnacks);
         }
 
-        // --- NEW METHOD ---
         // POST: api/snacks/purchase
         [HttpPost("purchase")]
         public async Task<IActionResult> PurchaseSnack([FromBody] PurchaseRequest request)
         {
-            // Step 1: Find the user and the snack in the database.
             var user = await _context.Users.FindAsync(request.UserId);
             var snack = await _context.Snacks.FindAsync(request.SnackId);
 
-            // Step 2: Validate the data. If user or snack doesn't exist, return an error.
             if (user == null || snack == null)
             {
                 return NotFound("User or Snack not found.");
             }
 
-            if (!snack.IsAvailable)
+            // --- NEW STOCK VALIDATION ---
+            if (snack.Stock <= 0)
             {
-                return BadRequest("Sorry, this snack is no longer available.");
+                return BadRequest(new { message = "Sorry, this snack is out of stock." });
             }
 
-            // Step 3: Perform the logic.
+            if (!snack.IsAvailable)
+            {
+                return BadRequest(new { message = "Sorry, this snack is no longer available." });
+            }
+
+            // --- UPDATE LOGIC ---
             user.Balance -= snack.Price;
+            snack.Stock -= 1; // Decrement the stock by 1
 
             var transaction = new Transaction
             {
@@ -60,13 +64,10 @@ namespace SnackTracker.Api.Controllers
                 Timestamp = DateTime.UtcNow
             };
 
-            // Step 4: Add the new transaction to the context.
             _context.Transactions.Add(transaction);
-
-            // Step 5: Save all changes to the database.
+            
             await _context.SaveChangesAsync();
 
-            // Step 6: Return a success response.
             return Ok(new { message = "Purchase successful!", newBalance = user.Balance });
         }
     }

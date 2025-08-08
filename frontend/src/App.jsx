@@ -10,17 +10,17 @@ import Dashboard from './components/Dashboard';
 
 const customTheme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     primary: {
       main: '#006EB6',
     },
     background: {
-      default: '#000000',
-      paper: '#4B4443',
+      default: '#FFFFFF',
+      paper: '#f5f5f5',
     },
     text: {
-      primary: '#FFFFFF',
-      secondary: '#949598',
+      primary: '#000000',
+      secondary: '#4B4443',
     },
   },
 });
@@ -31,7 +31,6 @@ function App() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
   
-  // --- NEW STATE FOR ERROR MESSAGES ---
   const [loginError, setLoginError] = useState('');
 
   const handleLogin = () => {
@@ -44,23 +43,28 @@ function App() {
     window.location.href = 'http://localhost:5106/api/auth/signout';
   };
   
+  // --- NEW FUNCTION TO UPDATE USER STATE ---
+  // We pass this function down so child components can update the user's balance.
+  const updateUser = (updatedUser) => {
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get('user');
-    const errorParam = params.get('error'); // Get the error parameter
+    const errorParam = params.get('error');
 
     if (userParam) {
       try {
         const userData = JSON.parse(decodeURIComponent(userParam));
-        localStorage.setItem('user', JSON.stringify(userData));
-        setUser(userData);
+        updateUser(userData); // Use our new function to set the user
         window.history.replaceState({}, document.title, "/");
       } catch (error) {
         console.error("Failed to parse user data from URL", error);
         setLoginError("An unexpected error occurred during login.");
       }
     } else if (errorParam) {
-        // --- NEW ERROR HANDLING LOGIC ---
         if (errorParam === 'invalid_domain') {
             setLoginError('Access Denied: Only byui.edu accounts are allowed.');
         } else {
@@ -80,9 +84,9 @@ function App() {
         </Typography>
         
         {user ? (
-          <Dashboard user={user} onLogout={handleLogout} />
+          // Pass the user and the updateUser function to the Dashboard
+          <Dashboard user={user} onLogout={handleLogout} updateUser={updateUser} />
         ) : (
-          // Pass the error message and setter to the LoginPage
           <LoginPage onLogin={handleLogin} error={loginError} setError={setLoginError} />
         )}
 
