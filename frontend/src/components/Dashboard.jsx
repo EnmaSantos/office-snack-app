@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Box, Button, CircularProgress, Alert } from '@mui/material';
+import { Typography, Box, Button, CircularProgress, Alert, Divider } from '@mui/material';
+import AdminPage from './AdminPage';
 import SnackList from './SnackList';
 
 // It now receives the 'updateUser' function from App.jsx
@@ -63,6 +64,13 @@ function Dashboard({ user, onLogout, updateUser }) {
           updateUser={updateUser}
           setPurchaseStatus={setPurchaseStatus}
         />
+      )}
+
+      {user?.IsAdmin && (
+        <>
+          <Divider sx={{ my: 4 }} />
+          <AdminPage user={user} />
+        </>
       )}
     </Box>
   );
