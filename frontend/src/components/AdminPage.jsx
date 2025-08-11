@@ -1,13 +1,20 @@
 import React from 'react';
-import { Typography, Box, Paper } from '@mui/material';
+import { Typography, Box, Paper, Button } from '@mui/material';
 import SnackManager from './SnackManager';
 
-function AdminPage({ user }) {
+// This is the main container for the admin section.
+// It receives 'setView' to allow navigation back to the dashboard.
+function AdminPage({ user, setView }) {
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Admin Panel
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" gutterBottom>
+          Admin Panel
+        </Typography>
+        <Button variant="outlined" onClick={() => setView('dashboard')}>
+          Back to Dashboard
+        </Button>
+      </Box>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
           Snack Management

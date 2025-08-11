@@ -1,28 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Switch, FormControlLabel } from '@mui/material';
 
+// This component is a pop-up form for creating and editing snacks.
 function SnackForm({ open, onClose, snack, user, refreshSnacks }) {
   const [formData, setFormData] = useState({
-    name: '',
-    price: 0,
-    stock: 0,
-    imageUrl: '',
-    isAvailable: true,
+    Name: '',
+    Price: 0,
+    Stock: 0,
+    ImageUrl: '',
+    IsAvailable: true,
   });
 
   useEffect(() => {
     if (snack) {
-      // Map existing snack (already camelCase from API usage elsewhere)
       setFormData({
-        name: snack.name ?? '',
-        price: snack.price ?? 0,
-        stock: snack.stock ?? 0,
-        imageUrl: snack.imageUrl ?? '',
-        isAvailable: snack.isAvailable ?? true,
-        snackId: snack.snackId,
+        Name: snack.Name ?? '',
+        Price: snack.Price ?? 0,
+        Stock: snack.Stock ?? 0,
+        ImageUrl: snack.ImageUrl ?? '',
+        IsAvailable: snack.IsAvailable ?? true,
+        SnackId: snack.SnackId,
       });
     } else {
-      setFormData({ name: '', price: 0, stock: 0, imageUrl: '', isAvailable: true });
+      // Reset to default values for a new snack
+      setFormData({ Name: '', Price: 0, Stock: 0, ImageUrl: '', IsAvailable: true });
     }
   }, [snack, open]);
 
@@ -36,19 +37,19 @@ function SnackForm({ open, onClose, snack, user, refreshSnacks }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const isEditing = Boolean(snack && snack.snackId);
+    const isEditing = Boolean(snack && snack.SnackId);
     const url = isEditing 
-      ? `http://localhost:5106/api/admin/snacks/${snack.snackId}` 
+      ? `http://localhost:5106/api/admin/snacks/${snack.SnackId}` 
       : 'http://localhost:5106/api/admin/snacks';
     const method = isEditing ? 'PUT' : 'POST';
 
     const body = {
-      snackId: isEditing ? snack.snackId : undefined,
-      name: formData.name,
-      price: parseFloat(formData.price),
-      stock: parseInt(String(formData.stock), 10),
-      imageUrl: formData.imageUrl || null,
-      isAvailable: Boolean(formData.isAvailable),
+      SnackId: isEditing ? snack.SnackId : undefined,
+      Name: formData.Name,
+      Price: parseFloat(formData.Price),
+      Stock: parseInt(String(formData.Stock), 10),
+      ImageUrl: formData.ImageUrl || null,
+      IsAvailable: Boolean(formData.IsAvailable),
     };
 
     await fetch(url, {
@@ -69,11 +70,11 @@ function SnackForm({ open, onClose, snack, user, refreshSnacks }) {
       <DialogTitle>{snack ? 'Edit Snack' : 'Add New Snack'}</DialogTitle>
       <form onSubmit={handleSubmit}>
         <DialogContent>
-          <TextField autoFocus margin="dense" name="name" label="Snack Name" type="text" fullWidth variant="standard" value={formData.name} onChange={handleChange} required />
-          <TextField margin="dense" name="price" label="Price" type="number" fullWidth variant="standard" value={formData.price} onChange={handleChange} required inputProps={{ step: '0.01' }} />
-          <TextField margin="dense" name="stock" label="Stock" type="number" fullWidth variant="standard" value={formData.stock} onChange={handleChange} required />
-          <TextField margin="dense" name="imageUrl" label="Image URL" type="text" fullWidth variant="standard" value={formData.imageUrl} onChange={handleChange} />
-          <FormControlLabel control={<Switch checked={formData.isAvailable} onChange={handleChange} name="isAvailable" />} label="Is Available" />
+          <TextField autoFocus margin="dense" name="Name" label="Snack Name" type="text" fullWidth variant="standard" value={formData.Name} onChange={handleChange} required />
+          <TextField margin="dense" name="Price" label="Price" type="number" fullWidth variant="standard" value={formData.Price} onChange={handleChange} required inputProps={{ step: '0.01' }} />
+          <TextField margin="dense" name="Stock" label="Stock" type="number" fullWidth variant="standard" value={formData.Stock} onChange={handleChange} required />
+          <TextField margin="dense" name="ImageUrl" label="Image URL" type="text" fullWidth variant="standard" value={formData.ImageUrl} onChange={handleChange} />
+          <FormControlLabel control={<Switch checked={formData.IsAvailable} onChange={handleChange} name="IsAvailable" />} label="Is Available" />
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>

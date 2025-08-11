@@ -7,6 +7,7 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
+import AdminPage from './components/AdminPage'; // Import the new AdminPage
 
 const customTheme = createTheme({
   palette: {
@@ -32,6 +33,10 @@ function App() {
   });
   
   const [loginError, setLoginError] = useState('');
+  // --- NEW STATE TO CONTROL VIEW ---
+  const [view, setView] = useState('dashboard'); // 'dashboard' or 'admin'
+  // --- NEW STATE FOR THE SHOPPING CART ---
+  const [cart, setCart] = useState([]);
 
   const handleLogin = () => {
     window.location.href = 'http://localhost:5106/api/auth/signin-google';
@@ -40,6 +45,8 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('user');
     setUser(null);
+    setView('dashboard'); // Reset view on logout
+    setCart([]); // Clear cart on logout
     window.location.href = 'http://localhost:5106/api/auth/signout';
   };
   
@@ -75,20 +82,39 @@ function App() {
   }, []);
 
 
+  // --- FUNCTION TO RENDER THE CURRENT VIEW ---
+  const renderContent = () => {
+    if (!user) {
+      return <LoginPage onLogin={handleLogin} error={loginError} setError={setLoginError} />;
+    }
+    
+    switch (view) {
+      case 'admin':
+        return <AdminPage user={user} setView={setView} />;
+      case 'dashboard':
+      default:
+        return (
+          <Dashboard 
+            user={user} 
+            onLogout={handleLogout} 
+            updateUser={updateUser} 
+            setView={setView}
+            cart={cart}
+            setCart={setCart}
+          />
+        );
+    }
+  };
+
   return (
     <ThemeProvider theme={customTheme}>
       <CssBaseline />
       <Container component="main" sx={{ mt: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Snack Tracker
+          Snack Tracker {user && user.IsAdmin && view === 'admin' && '(Admin)'}
         </Typography>
         
-        {user ? (
-          // Pass the user and the updateUser function to the Dashboard
-          <Dashboard user={user} onLogout={handleLogout} updateUser={updateUser} />
-        ) : (
-          <LoginPage onLogin={handleLogin} error={loginError} setError={setLoginError} />
-        )}
+        {renderContent()}
 
       </Container>
     </ThemeProvider>
