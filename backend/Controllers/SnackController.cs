@@ -39,7 +39,7 @@ namespace SnackTracker.Api.Controllers
 
             if (user == null || snack == null)
             {
-                return NotFound("User or Snack not found.");
+                return NotFound(new { message = "User or Snack not found." });
             }
 
             if (snack.Stock <= 0)
@@ -75,7 +75,7 @@ namespace SnackTracker.Api.Controllers
             try
             {
                 var user = await _context.Users.FindAsync(request.UserId);
-                if (user == null) return NotFound("User not found.");
+                if (user == null) return NotFound(new { message = "User not found." });
 
                 var snacksInCart = await _context.Snacks
                     .Where(s => request.SnackIds.Contains(s.SnackId))
@@ -88,19 +88,20 @@ namespace SnackTracker.Api.Controllers
                     var snack = snacksInCart.FirstOrDefault(s => s.SnackId == snackId);
                     if (snack == null)
                     {
-                        return BadRequest($"Snack with ID {snackId} not found.");
+                        return BadRequest(new { message = $"Snack with ID {snackId} not found." });
                     }
                     if (snack.Stock <= 0)
                     {
-                        return BadRequest($"Sorry, '{snack.Name}' is out of stock.");
+                        return BadRequest(new { message = $"Sorry, '{snack.Name}' is out of stock." });
                     }
                     totalCost += snack.Price;
                 }
 
-                if (user.Balance < totalCost)
-                {
-                    return BadRequest("Insufficient funds for this purchase.");
-                }
+                // Allow negative balances - users can "owe" money
+                // if (user.Balance < totalCost)
+                // {
+                //     return BadRequest(new { message = "Insufficient funds for this purchase." });
+                // }
 
                 // All checks passed. Now, execute the changes.
                 user.Balance -= totalCost;
@@ -128,7 +129,7 @@ namespace SnackTracker.Api.Controllers
             catch (Exception)
             {
                 await dbTransaction.RollbackAsync(); // Undo all changes if anything fails
-                return StatusCode(500, "An unexpected error occurred. The transaction has been rolled back.");
+                return StatusCode(500, new { message = "An unexpected error occurred. The transaction has been rolled back." });
             }
         }
     }

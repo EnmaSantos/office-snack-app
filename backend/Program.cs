@@ -18,11 +18,53 @@ builder.Services.AddDbContext<SnackTrackerContext>(options =>
 // --- UPDATED AUTHENTICATION CONFIGURATION ---
 builder.Services.AddAuthentication(options =>
     {
-        // We use cookies to temporarily store the user's session after they sign in.
+        // Use cookies for auth; do not auto-redirect to Google on API challenges
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     })
-    .AddCookie() // Add cookie handling
+    .AddCookie(options =>
+    {
+        options.Cookie.Name = "SnackTracker.Auth";
+        options.Cookie.HttpOnly = true;
+
+        if (builder.Environment.IsDevelopment())
+        {
+            // For localhost over HTTP, allow cookie without Secure and with Lax SameSite
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        }
+        else
+        {
+            // In production, use cross-site cookie only over HTTPS
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        }
+
+        // Avoid 302 redirects for APIs; return proper status codes
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = context =>
+            {
+                if (context.Request.Path.StartsWithSegments("/api"))
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                }
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = context =>
+            {
+                if (context.Request.Path.StartsWithSegments("/api"))
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return Task.CompletedTask;
+                }
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            }
+        };
+    }) // Add cookie handling
     .AddGoogle(options => // Add Google authentication
     {
         // These lines read the Client ID and Secret from the Secret Manager.
@@ -65,7 +107,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy(FrontendCorsPolicy, policy =>
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod());
+              .AllowAnyMethod()
+              .AllowCredentials());
 });
 
 var app = builder.Build();

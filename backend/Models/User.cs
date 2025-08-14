@@ -17,5 +17,7 @@ namespace SnackTracker.Api.Models
         public decimal Balance { get; set; } = 0.00M;
 
         public bool IsAdmin { get; set; } = false;
+
+        public string? ProfilePictureUrl { get; set; }
     }
 }
