@@ -43,6 +43,7 @@ namespace SnackTracker.Api.Controllers
             var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
             var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var displayName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+            var profilePictureUrl = claims?.FirstOrDefault(c => c.Type == "picture")?.Value;
 
             if (string.IsNullOrEmpty(email))
             {
@@ -60,14 +61,34 @@ namespace SnackTracker.Api.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
-                user = new User { Email = email, DisplayName = displayName };
+                user = new User { Email = email, DisplayName = displayName, ProfilePictureUrl = profilePictureUrl };
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
             }
+            else
+            {
+                // Update existing user's profile picture URL if it has changed
+                if (user.ProfilePictureUrl != profilePictureUrl)
+                {
+                    user.ProfilePictureUrl = profilePictureUrl;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            // Sign into our cookie scheme so subsequent API calls carry an auth cookie
+            var identity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Name, user.DisplayName ?? user.Email),
+                new Claim(ClaimTypes.Email, user.Email)
+            }, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(identity));
 
             var userJson = JsonSerializer.Serialize(user);
             var encodedUser = System.Web.HttpUtility.UrlEncode(userJson);
-            
             return Redirect($"http://localhost:5173?user={encodedUser}");
         }
 

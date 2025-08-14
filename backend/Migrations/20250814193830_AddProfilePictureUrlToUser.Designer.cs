@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SnackTracker.Api.Data;
 
@@ -10,9 +11,11 @@ using SnackTracker.Api.Data;
 namespace SnackTracker.Api.Migrations
 {
     [DbContext(typeof(SnackTrackerContext))]
-    partial class SnackTrackerContextModelSnapshot : ModelSnapshot
+    [Migration("20250814193830_AddProfilePictureUrlToUser")]
+    partial class AddProfilePictureUrlToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.7");

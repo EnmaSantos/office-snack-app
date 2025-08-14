@@ -145,5 +145,92 @@ namespace SnackTracker.Api.Controllers
             }
             return snack;
         }
+
+        // --- USER BALANCE AND TRANSACTION MANAGEMENT ---
+
+        // GET: api/admin/user-balances
+        [HttpGet("user-balances")]
+        public async Task<ActionResult<IEnumerable<object>>> GetUserBalances()
+        {
+            var adminUser = await GetAdminFromHeader();
+            if (adminUser == null) return Unauthorized();
+
+            var users = await _context.Users
+                .OrderBy(u => u.DisplayName)
+                .Select(u => new
+                {
+                    u.UserId,
+                    u.Email,
+                    u.DisplayName,
+                    u.Balance,
+                    u.IsAdmin
+                })
+                .ToListAsync();
+
+            return Ok(users);
+        }
+
+        // GET: api/admin/user-transactions/{userId}
+        [HttpGet("user-transactions/{userId}")]
+        public async Task<ActionResult<IEnumerable<object>>> GetUserTransactions(int userId)
+        {
+            var adminUser = await GetAdminFromHeader();
+            if (adminUser == null) return Unauthorized();
+
+            // Check if the user exists
+            var userExists = await _context.Users.AnyAsync(u => u.UserId == userId);
+            if (!userExists)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+
+            var transactions = await _context.Transactions
+                .Include(t => t.Snack)
+                .Include(t => t.User)
+                .Where(t => t.UserId == userId)
+                .OrderByDescending(t => t.Timestamp)
+                .Select(t => new
+                {
+                    t.TransactionId,
+                    t.TransactionAmount,
+                    t.Timestamp,
+                    SnackName = t.Snack.Name,
+                    SnackPrice = t.Snack.Price,
+                    SnackImageUrl = t.Snack.ImageUrl,
+                    UserEmail = t.User.Email,
+                    UserDisplayName = t.User.DisplayName
+                })
+                .ToListAsync();
+
+            return Ok(transactions);
+        }
+
+        // GET: api/admin/all-transactions
+        [HttpGet("all-transactions")]
+        public async Task<ActionResult<IEnumerable<object>>> GetAllTransactions()
+        {
+            var adminUser = await GetAdminFromHeader();
+            if (adminUser == null) return Unauthorized();
+
+            var transactions = await _context.Transactions
+                .Include(t => t.Snack)
+                .Include(t => t.User)
+                .OrderByDescending(t => t.Timestamp)
+                .Select(t => new
+                {
+                    t.TransactionId,
+                    t.UserId,
+                    t.TransactionAmount,
+                    t.Timestamp,
+                    SnackName = t.Snack.Name,
+                    SnackPrice = t.Snack.Price,
+                    SnackImageUrl = t.Snack.ImageUrl,
+                    UserEmail = t.User.Email,
+                    UserDisplayName = t.User.DisplayName
+                })
+                .ToListAsync();
+
+            return Ok(transactions);
+        }
     }
 }
