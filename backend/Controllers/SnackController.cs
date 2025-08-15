@@ -54,7 +54,7 @@ namespace SnackTracker.Api.Controllers
             {
                 UserId = user.UserId,
                 SnackId = snack.SnackId,
-                TransactionAmount = snack.Price,
+                TransactionAmount = -snack.Price, // Negative for purchases
                 Timestamp = DateTime.UtcNow
             };
 
@@ -115,7 +115,7 @@ namespace SnackTracker.Api.Controllers
                     {
                         UserId = user.UserId,
                         SnackId = snack.SnackId,
-                        TransactionAmount = snack.Price,
+                        TransactionAmount = -snack.Price, // Negative for purchases
                         Timestamp = DateTime.UtcNow
                     };
                     _context.Transactions.Add(purchaseTransaction);
