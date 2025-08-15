@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SnackTracker.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+355f6ea05eeccf321159900469d282e69ef348a4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+908a12f465158dbd15937af54eeb0f683e874a0f")]
 [assembly: System.Reflection.AssemblyProductAttribute("SnackTracker.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SnackTracker.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
