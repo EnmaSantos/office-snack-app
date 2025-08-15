@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Grid, Card, CardContent, Typography, Button, Box } from '@mui/material';
+import { Grid, Card, CardContent, Typography, Button, Box, IconButton } from '@mui/material';
+import { Add, Remove } from '@mui/icons-material';
 
 function SnackList({ snacks, cart, setCart }) {
   const animationRef = useRef(null);
@@ -61,6 +62,15 @@ function SnackList({ snacks, cart, setCart }) {
     // Only add if there's still stock available
     if (countInCart < snackToAdd.Stock) {
       setCart(prevCart => [...prevCart, snackToAdd]);
+    }
+  };
+
+  const handleRemoveFromCart = (snackToRemove) => {
+    const firstIndex = cart.findIndex(item => item.SnackId === snackToRemove.SnackId);
+    if (firstIndex !== -1) {
+      const newCart = [...cart];
+      newCart.splice(firstIndex, 1);
+      setCart(newCart);
     }
   };
 
@@ -174,23 +184,63 @@ function SnackList({ snacks, cart, setCart }) {
                     In Stock: {snack.Stock}
                   </Typography>
                 </Box>
-                <Button 
-                  variant="contained" 
-                  fullWidth
-                  size="medium"
-                  sx={{ 
-                    mt: 1,
-                    py: { xs: 0.5, sm: 1 }, // Smaller padding on mobile
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' }, // Smaller font on mobile
-                    fontWeight: 600,
-                    minHeight: { xs: '32px', sm: '40px' } // Smaller minimum height on mobile
-                  }}
-                  onClick={() => handleAddToCart(snack)}
-                  disabled={snack.Stock <= 0 || countInCart >= snack.Stock}
-                >
-                  {countInCart >= snack.Stock ? 'Out of Stock' : 
-                   countInCart > 0 ? `ADD TO CART (${countInCart} in cart)` : 'ADD TO CART'}
-                </Button>
+                {countInCart === 0 ? (
+                  <Button 
+                    variant="contained" 
+                    fullWidth
+                    size="medium"
+                    sx={{ 
+                      mt: 1,
+                      py: { xs: 0.5, sm: 1 },
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      fontWeight: 600,
+                      minHeight: { xs: '32px', sm: '40px' }
+                    }}
+                    onClick={() => handleAddToCart(snack)}
+                    disabled={snack.Stock <= 0}
+                  >
+                    ADD TO CART
+                  </Button>
+                ) : (
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 1 }}>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleRemoveFromCart(snack)}
+                      sx={{
+                        border: '1px solid #1976d2',
+                        borderRadius: '4px 0 0 4px',
+                        '&:hover': { backgroundColor: '#e3f2fd' }
+                      }}
+                    >
+                      <Remove />
+                    </IconButton>
+                    <Typography 
+                      sx={{ 
+                        px: 2, 
+                        py: '3px',
+                        borderTop: '1px solid #1976d2',
+                        borderBottom: '1px solid #1976d2',
+                        minWidth: '40px',
+                        textAlign: 'center',
+                        fontWeight: 600
+                      }}
+                    >
+                      {countInCart}
+                    </Typography>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleAddToCart(snack)}
+                      disabled={countInCart >= snack.Stock}
+                      sx={{
+                        border: '1px solid #1976d2',
+                        borderRadius: '0 4px 4px 0',
+                        '&:hover': { backgroundColor: '#e3f2fd' }
+                      }}
+                    >
+                      <Add />
+                    </IconButton>
+                  </Box>
+                )}
               </CardContent>
             </Card>
           </Grid>

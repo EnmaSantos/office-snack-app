@@ -70,14 +70,19 @@ function Profile({ user }) {
   };
 
   const totalSpent = transactions.reduce((sum, transaction) => {
-    return transaction.transactionAmount < 0 ? sum + Math.abs(transaction.transactionAmount) : sum;
+    const amount = transaction.TransactionAmount || transaction.transactionAmount;
+    return amount < 0 ? sum + Math.abs(amount) : sum;
   }, 0);
 
   const totalAdded = transactions.reduce((sum, transaction) => {
-    return transaction.transactionAmount > 0 ? sum + transaction.transactionAmount : sum;
+    const amount = transaction.TransactionAmount || transaction.transactionAmount;
+    return amount > 0 ? sum + amount : sum;
   }, 0);
 
-  const purchaseTransactions = transactions.filter(t => t.transactionAmount < 0);
+  const purchaseTransactions = transactions.filter(t => {
+    const amount = t.TransactionAmount || t.transactionAmount;
+    return amount < 0;
+  });
 
   return (
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
@@ -253,11 +258,11 @@ function Profile({ user }) {
                         variant="h6"
                         sx={{
                           fontWeight: 'bold',
-                          color: transaction.transactionAmount < 0 ? '#f44336' : '#4caf50'
+                          color: (transaction.TransactionAmount || transaction.transactionAmount) < 0 ? '#f44336' : '#4caf50'
                         }}
                       >
-                        {transaction.transactionAmount < 0 ? '-' : '+'}$
-                        {Math.abs(transaction.transactionAmount).toFixed(2)}
+                        {(transaction.TransactionAmount || transaction.transactionAmount) < 0 ? '-' : '+'}$
+                        {Math.abs(transaction.TransactionAmount || transaction.transactionAmount).toFixed(2)}
                       </Typography>
                       {transaction.snackPrice && (
                         <Typography variant="caption" color="text.secondary">

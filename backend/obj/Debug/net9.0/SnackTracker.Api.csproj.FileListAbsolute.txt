@@ -318,3 +318,5 @@
 /Users/enmanueldelossantoscruz/Documents/Projects/office-snack-app/backend/obj/Debug/net9.0/SnackTracker.Api.pdb
 /Users/enmanueldelossantoscruz/Documents/Projects/office-snack-app/backend/obj/Debug/net9.0/SnackTracker.Api.genruntimeconfig.cache
 /Users/enmanueldelossantoscruz/Documents/Projects/office-snack-app/backend/obj/Debug/net9.0/ref/SnackTracker.Api.dll
+/Users/enmanueldelossantoscruz/Documents/Projects/office-snack-app/backend/bin/Debug/net9.0/DotNetEnv.dll
+/Users/enmanueldelossantoscruz/Documents/Projects/office-snack-app/backend/bin/Debug/net9.0/Sprache.dll
