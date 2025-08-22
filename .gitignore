@@ -24,4 +24,33 @@ frontend/node_modules/
 .env.*
 !.env.example
 
+# Rider files
+.idea/
 
+# Visual Studio generated files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+
+# Mac files
+.DS_Store
+
+# Env files
+.env
+.env.*
+!.env.example
+
+
+# All .db related files
+*.db
+*.db-shm
+*.db-wal
+
+# All .db related files
+*.db
+*.db-shm
+*.db-wal
+
+backend/SnackTracker.db
