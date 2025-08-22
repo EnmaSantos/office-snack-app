@@ -26,7 +26,7 @@ namespace SnackTracker.Api.Controllers
 
         // POST: api/SnackRequests
         [HttpPost]
-        public async Task<ActionResult<SnackRequest>> PostSnackRequest([FromBody] SnackRequest snackRequest)
+        public async Task<ActionResult<SnackRequest>> PostSnackRequest([FromBody] CreateSnackRequest createRequest)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
@@ -34,9 +34,13 @@ namespace SnackTracker.Api.Controllers
                 return Unauthorized();
             }
 
-            snackRequest.RequestedByUserId = int.Parse(userId);
-            snackRequest.RequestDate = DateTime.UtcNow;
-            snackRequest.Status = "Pending";
+            var snackRequest = new SnackRequest
+            {
+                SnackName = createRequest.SnackName,
+                RequestedByUserId = int.Parse(userId),
+                RequestDate = DateTime.UtcNow,
+                Status = "Pending"
+            };
 
             _context.SnackRequests.Add(snackRequest);
             await _context.SaveChangesAsync();
