@@ -98,5 +98,24 @@ namespace SnackTracker.Api.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Redirect("http://localhost:5173");
         }
+
+        // DEVELOPMENT ONLY: Toggle admin status for testing
+        [HttpPost("toggle-admin/{userId}")]
+        public async Task<IActionResult> ToggleAdminForTesting(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+
+            user.IsAdmin = !user.IsAdmin;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { 
+                message = $"User {user.DisplayName} is now {(user.IsAdmin ? "an admin" : "a regular user")}",
+                user = user
+            });
+        }
     }
 }

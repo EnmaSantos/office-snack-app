@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Typography, Box, Button, CircularProgress, Alert, IconButton, Badge } from '@mui/material';
+import { Typography, Box, Button, CircularProgress, Alert, IconButton, Badge, Avatar } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PersonIcon from '@mui/icons-material/Person';
 import SnackList from './SnackList';
@@ -7,6 +7,7 @@ import Cart from './Cart';
 import AddBalanceModal from './AddBalanceModal';
 import AdminPage from './AdminPage';
 import Profile from './Profile';
+import SnackRequestForm from './SnackRequestForm';
 
 function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
   const [snacks, setSnacks] = useState([]);
@@ -198,19 +199,30 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
           gap: { xs: 2, sm: 0 }
         }}>
           <Box sx={{ 
+            display: 'flex',
+            alignItems: 'center',
             textAlign: { xs: 'center', sm: 'left' },
             mb: { xs: 1, sm: 0 }
           }}>
-            <Typography variant="h5" sx={{ 
-              fontSize: { xs: '1.25rem', sm: '1.5rem' }
-            }}>
-              Welcome, {user.DisplayName}!
-            </Typography>
-            <Typography variant="h6" sx={{ 
-              fontSize: { xs: '1rem', sm: '1.25rem' }
-            }}>
-              Your current balance is: ${formattedBalance}
-            </Typography>
+            {user.ProfilePictureUrl && (
+              <Avatar 
+                src={user.ProfilePictureUrl} 
+                alt={user.DisplayName} 
+                sx={{ mr: 2, width: 56, height: 56 }} 
+              />
+            )}
+            <div>
+              <Typography variant="h5" sx={{ 
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }}>
+                Welcome, {user.DisplayName}!
+              </Typography>
+              <Typography variant="h6" sx={{ 
+                fontSize: { xs: '1rem', sm: '1.25rem' }
+              }}>
+                Your current balance is: ${formattedBalance}
+              </Typography>
+            </div>
           </Box>
           <Box sx={{ 
             display: 'flex', 
@@ -314,17 +326,27 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
         gap: { xs: 2, sm: 0 } // Add gap between sections on mobile
       }}>
         <Box sx={{ 
-          textAlign: { xs: 'center', sm: 'left' }, // Center on mobile
+          display: 'flex', 
+          alignItems: 'center', 
+          textAlign: { xs: 'center', sm: 'left' }, 
           mb: { xs: 1, sm: 0 }
         }}>
-          <Typography variant="h5" sx={{ 
-            fontSize: { xs: '1.25rem', sm: '1.5rem' } // Smaller on mobile
-          }}>
-            Welcome, {user.DisplayName}!
-          </Typography>
-          <Typography variant="h6" sx={{ 
-            fontSize: { xs: '1rem', sm: '1.25rem' } // Smaller on mobile
-          }}>
+          {user.ProfilePictureUrl && (
+            <Avatar 
+              src={user.ProfilePictureUrl} 
+              alt={user.DisplayName} 
+              sx={{ mr: 2, width: 56, height: 56 }} 
+            />
+          )}
+          <div>
+            <Typography variant="h5" sx={{ 
+              fontSize: { xs: '1.25rem', sm: '1.5rem' }
+            }}>
+              Welcome, {user.DisplayName}!
+            </Typography>
+            <Typography variant="h6" sx={{ 
+              fontSize: { xs: '1rem', sm: '1.25rem' }
+            }}>
             Your current balance is:{' '}
             <Box component="span" sx={{ position: 'relative', display: 'inline-block' }}>
               {/* Animated balance value */}
@@ -354,6 +376,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
               </Box>
             </Box>
           </Typography>
+        </div>
         </Box>
         <Box sx={{ 
           display: 'flex', 
@@ -462,6 +485,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
         user={user}
         updateUser={updateUser}
       />
+      <SnackRequestForm user={user} />
     </Box>
   );
 }

@@ -45,7 +45,7 @@ function SnackManager({ user }) {
   const handleDelete = async (snackId) => {
     // Use a confirmation dialog before deleting
     if (window.confirm('Are you sure you want to delete this snack? This action cannot be undone.')) {
-      await fetch(`http://localhost:5106/api/admin/snacks/${snackId}`, {
+      await fetch(`http://localhost:5106/api/Admin/snacks/${snackId}`, {
         method: 'DELETE',
         headers: { 'X-User-Id': user.UserId },
       });

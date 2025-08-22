@@ -24,5 +24,8 @@ namespace SnackTracker.Api.Data
 
         // This will create a 'Transactions' table from our 'Transaction' model.
         public DbSet<Transaction> Transactions { get; set; }
+
+        // This will create a 'SnackRequests' table from our 'SnackRequest' model.
+        public DbSet<SnackRequest> SnackRequests { get; set; }
     }
 }

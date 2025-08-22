@@ -7,4 +7,9 @@ namespace SnackTracker.Api.Controllers
         public int UserId { get; set; }
         public decimal Amount { get; set; }
     }
+
+    public class ToggleAdminStatusRequest
+    {
+        public int UserId { get; set; }
+    }
 }

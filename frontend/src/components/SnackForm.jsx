@@ -39,8 +39,8 @@ function SnackForm({ open, onClose, snack, user, refreshSnacks }) {
     e.preventDefault();
     const isEditing = Boolean(snack && snack.SnackId);
     const url = isEditing 
-      ? `http://localhost:5106/api/admin/snacks/${snack.SnackId}` 
-      : 'http://localhost:5106/api/admin/snacks';
+      ? `http://localhost:5106/api/Admin/snacks/${snack.SnackId}` 
+      : 'http://localhost:5106/api/Admin/snacks';
     const method = isEditing ? 'PUT' : 'POST';
 
     const body = {

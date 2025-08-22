@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
 namespace SnackTracker.Api.Models
 {
@@ -19,5 +20,7 @@ namespace SnackTracker.Api.Models
         public bool IsAdmin { get; set; } = false;
 
         public string? ProfilePictureUrl { get; set; }
+
+        public ICollection<SnackRequest> SnackRequests { get; set; } = new List<SnackRequest>();
     }
 }

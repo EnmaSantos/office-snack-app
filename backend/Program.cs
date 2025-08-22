@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Authentication.Google; // Add this
 using Microsoft.AspNetCore.Authentication.Cookies; // Add this
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SnackTracker.Api.Data;
@@ -9,7 +10,8 @@ using SnackTracker.Api.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // --- Database Configuration ---
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=SnackTracker.db";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+    $"Data Source={Path.Combine(builder.Environment.ContentRootPath, "SnackTracker.db")}";
 builder.Services.AddDbContext<SnackTrackerContext>(options =>
     options.UseSqlite(connectionString));
 
@@ -68,8 +70,19 @@ builder.Services.AddAuthentication(options =>
     .AddGoogle(options => // Add Google authentication
     {
         // These lines read the Client ID and Secret from the Secret Manager.
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+        var clientId = builder.Configuration["Authentication:Google:ClientId"];
+        var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+        if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+        {
+            throw new InvalidOperationException("Google authentication credentials are not configured.");
+        }
+
+        options.ClientId = clientId;
+        options.ClientSecret = clientSecret;
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+        options.ClaimActions.MapJsonKey("picture", "picture", "url");
     });
 
 

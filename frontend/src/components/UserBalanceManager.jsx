@@ -20,7 +20,11 @@ import {
   ListItem,
   ListItemText,
   Avatar,
-  Divider
+  Divider,
+  Switch,
+  FormControlLabel,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
@@ -33,12 +37,16 @@ function UserBalanceManager({ user }) {
   const [userTransactions, setUserTransactions] = useState([]);
   const [transactionDialogOpen, setTransactionDialogOpen] = useState(false);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [toggleLoading, setToggleLoading] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   // Fetch all user balances
   const fetchUserBalances = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5106/api/admin/user-balances', {
+      const response = await fetch('http://localhost:5106/api/Admin/user-balances', {
         headers: { 'X-User-Id': user.UserId },
       });
       
@@ -50,7 +58,8 @@ function UserBalanceManager({ user }) {
           Email: userData.Email || userData.email,
           DisplayName: userData.DisplayName || userData.displayName,
           Balance: userData.Balance || userData.balance,
-          IsAdmin: userData.IsAdmin || userData.isAdmin
+          IsAdmin: userData.IsAdmin || userData.isAdmin,
+          ProfilePictureUrl: userData.ProfilePictureUrl || userData.profilePictureUrl
         }));
         setUsers(normalizedUsers);
       } else {
@@ -73,7 +82,7 @@ function UserBalanceManager({ user }) {
 
     setLoadingTransactions(true);
     try {
-      const response = await fetch(`http://localhost:5106/api/admin/user-transactions/${userId}`, {
+      const response = await fetch(`http://localhost:5106/api/Admin/user-transactions/${userId}`, {
         headers: { 'X-User-Id': user.UserId },
       });
       
@@ -118,6 +127,58 @@ function UserBalanceManager({ user }) {
     setUserTransactions([]);
   };
 
+  const handleToggleAdminStatus = async (userId, currentAdminStatus) => {
+    // Prevent user from toggling their own admin status
+    if (userId === user.UserId) {
+      setSnackbarMessage('You cannot change your own admin status.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    setToggleLoading(userId);
+    try {
+      const response = await fetch('http://localhost:5106/api/Admin/toggle-admin-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': user.UserId,
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Update the users state to reflect the change
+        setUsers(prevUsers => 
+          prevUsers.map(u => 
+            u.UserId === userId 
+              ? { ...u, IsAdmin: data.isAdmin }
+              : u
+          )
+        );
+        setSnackbarMessage(data.message);
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+      } else {
+        const errorData = await response.json();
+        setSnackbarMessage(errorData.message || 'Failed to update admin status');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      }
+    } catch (error) {
+      console.error('Error toggling admin status:', error);
+      setSnackbarMessage('Error updating admin status');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+    setToggleLoading(null);
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
   };
@@ -152,18 +213,39 @@ function UserBalanceManager({ user }) {
               <TableRow key={userData.UserId}>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar sx={{ mr: 2, bgcolor: userData.IsAdmin ? 'primary.main' : 'grey.400' }}>
-                      {userData.IsAdmin ? <AdminPanelSettingsIcon /> : <PersonIcon />}
+                    <Avatar 
+                      src={userData.ProfilePictureUrl} 
+                      alt={userData.DisplayName} 
+                      sx={{ mr: 2 }}
+                    >
+                      {!userData.ProfilePictureUrl && (userData.IsAdmin ? <AdminPanelSettingsIcon /> : <PersonIcon />)}
                     </Avatar>
                     {userData.DisplayName || 'No Name'}
                   </Box>
                 </TableCell>
                 <TableCell>{userData.Email}</TableCell>
                 <TableCell align="center">
-                  <Chip
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={userData.IsAdmin}
+                        onChange={() => handleToggleAdminStatus(userData.UserId, userData.IsAdmin)}
+                        disabled={toggleLoading === userData.UserId || userData.UserId === user.UserId}
+                        color="primary"
+                        size="small"
+                      />
+                    }
                     label={userData.IsAdmin ? 'Admin' : 'User'}
-                    color={userData.IsAdmin ? 'primary' : 'default'}
-                    size="small"
+                    labelPlacement="start"
+                    sx={{ 
+                      m: 0,
+                      opacity: userData.UserId === user.UserId ? 0.6 : 1,
+                      '& .MuiFormControlLabel-label': { 
+                        fontSize: '0.875rem',
+                        fontWeight: userData.IsAdmin ? 'bold' : 'normal',
+                        color: userData.IsAdmin ? 'primary.main' : 'text.secondary'
+                      }
+                    }}
                   />
                 </TableCell>
                 <TableCell align="right">
@@ -201,8 +283,12 @@ function UserBalanceManager({ user }) {
         <DialogTitle>
           {selectedUser && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar sx={{ mr: 2, bgcolor: selectedUser.IsAdmin ? 'primary.main' : 'grey.400' }}>
-                {selectedUser.IsAdmin ? <AdminPanelSettingsIcon /> : <PersonIcon />}
+              <Avatar 
+                src={selectedUser.ProfilePictureUrl} 
+                alt={selectedUser.DisplayName} 
+                sx={{ mr: 2 }}
+              >
+                {!selectedUser.ProfilePictureUrl && (selectedUser.IsAdmin ? <AdminPanelSettingsIcon /> : <PersonIcon />)}
               </Avatar>
               <Box>
                 <Typography variant="h6">
@@ -267,6 +353,22 @@ function UserBalanceManager({ user }) {
           <Button onClick={handleCloseTransactionDialog}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={snackbarSeverity}
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -29,7 +29,7 @@ function TransactionViewer({ user }) {
   const fetchAllTransactions = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5106/api/admin/all-transactions', {
+      const response = await fetch('http://localhost:5106/api/Admin/all-transactions', {
         headers: { 'X-User-Id': user.UserId },
       });
       

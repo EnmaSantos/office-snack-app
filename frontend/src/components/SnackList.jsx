@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Grid, Card, CardContent, Typography, Button, Box, IconButton } from '@mui/material';
-import { Add, Remove } from '@mui/icons-material';
+import { Grid, Card, CardContent, Typography, Button, Box, IconButton, TextField, InputAdornment } from '@mui/material';
+import { Add, Remove, Clear } from '@mui/icons-material';
 
 function SnackList({ snacks, cart, setCart }) {
   const animationRef = useRef(null);
   const [isAnimating, setIsAnimating] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     let isCancelled = false;
@@ -74,11 +75,36 @@ function SnackList({ snacks, cart, setCart }) {
     }
   };
 
+  const filteredSnacks = snacks.filter(snack =>
+    snack.Name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <Box sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>Available Snacks</Typography>
+      <TextField
+        fullWidth
+        variant="outlined"
+        placeholder="Search snacks..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        sx={{ mb: 2 }}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={() => setSearchTerm('')}
+                edge="end"
+                style={{ visibility: searchTerm ? 'visible' : 'hidden' }}
+              >
+                <Clear />
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
       <Grid container spacing={2} sx={{ justifyContent: 'flex-start' }}>
-        {snacks.map((snack) => {
+        {filteredSnacks.map((snack) => {
           // Count how many of this snack are already in the cart
           const countInCart = cart.filter(item => item.SnackId === snack.SnackId).length;
           
