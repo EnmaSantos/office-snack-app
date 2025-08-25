@@ -319,16 +319,27 @@ function UserBalanceManager({ user }) {
                       primary={
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography variant="subtitle1" component="span">
-                            {transaction.SnackName}
+                            {transaction.SnackName || 'Balance Added'}
                           </Typography>
-                          <Typography
-                            variant="body1"
-                            component="span"
-                            color="error"
-                            fontWeight="bold"
-                          >
-                            -{formatCurrency(transaction.TransactionAmount)}
-                          </Typography>
+                          {Number(transaction.TransactionAmount) < 0 ? (
+                            <Typography
+                              variant="body1"
+                              component="span"
+                              color="error"
+                              fontWeight="bold"
+                            >
+                              -{formatCurrency(Math.abs(transaction.TransactionAmount))}
+                            </Typography>
+                          ) : (
+                            <Typography
+                              variant="body1"
+                              component="span"
+                              color="success.main"
+                              fontWeight="bold"
+                            >
+                              +{formatCurrency(Math.abs(transaction.TransactionAmount))}
+                            </Typography>
+                          )}
                         </Box>
                       }
                       secondary={
@@ -336,9 +347,11 @@ function UserBalanceManager({ user }) {
                           <Typography variant="body2" color="text.secondary">
                             {formatDate(transaction.Timestamp)}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Snack Price: {formatCurrency(transaction.SnackPrice)}
-                          </Typography>
+                          {transaction.SnackPrice != null && (
+                            <Typography variant="body2" color="text.secondary">
+                              Snack Price: {formatCurrency(transaction.SnackPrice)}
+                            </Typography>
+                          )}
                         </Box>
                       }
                     />

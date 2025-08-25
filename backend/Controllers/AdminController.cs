@@ -63,6 +63,17 @@ namespace SnackTracker.Api.Controllers
             if (userToAdjust == null) return NotFound(new { message = "User to adjust not found." });
 
             userToAdjust.Balance += request.Amount;
+
+            // Record an adjustment transaction (positive for deposit, negative for deduction)
+            var adjustmentTransaction = new Transaction
+            {
+                UserId = userToAdjust.UserId,
+                SnackId = null,
+                TransactionAmount = request.Amount,
+                Timestamp = DateTime.UtcNow
+            };
+            _context.Transactions.Add(adjustmentTransaction);
+
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Balance updated successfully.", newBalance = userToAdjust.Balance });
@@ -221,9 +232,9 @@ namespace SnackTracker.Api.Controllers
                     t.TransactionId,
                     t.TransactionAmount,
                     t.Timestamp,
-                    SnackName = t.Snack.Name,
-                    SnackPrice = t.Snack.Price,
-                    SnackImageUrl = t.Snack.ImageUrl,
+                    SnackName = t.Snack != null ? t.Snack.Name : null,
+                    SnackPrice = t.Snack != null ? t.Snack.Price : (decimal?)null,
+                    SnackImageUrl = t.Snack != null ? t.Snack.ImageUrl : null,
                     UserEmail = t.User.Email,
                     UserDisplayName = t.User.DisplayName
                 })
@@ -249,9 +260,9 @@ namespace SnackTracker.Api.Controllers
                     t.UserId,
                     t.TransactionAmount,
                     t.Timestamp,
-                    SnackName = t.Snack.Name,
-                    SnackPrice = t.Snack.Price,
-                    SnackImageUrl = t.Snack.ImageUrl,
+                    SnackName = t.Snack != null ? t.Snack.Name : null,
+                    SnackPrice = t.Snack != null ? t.Snack.Price : (decimal?)null,
+                    SnackImageUrl = t.Snack != null ? t.Snack.ImageUrl : null,
                     UserEmail = t.User.Email,
                     UserDisplayName = t.User.DisplayName
                 })

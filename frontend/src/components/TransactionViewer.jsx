@@ -138,7 +138,7 @@ function TransactionViewer({ user }) {
           <TableHead>
             <TableRow>
               <TableCell>User</TableCell>
-              <TableCell>Snack</TableCell>
+              <TableCell>Item</TableCell>
               <TableCell align="right">Amount</TableCell>
               <TableCell align="right">Snack Price</TableCell>
               <TableCell align="center">Date & Time</TableCell>
@@ -180,7 +180,7 @@ function TransactionViewer({ user }) {
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {transaction.SnackImageUrl && (
+                      {transaction.SnackImageUrl ? (
                         <Box
                           component="img"
                           src={transaction.SnackImageUrl}
@@ -193,20 +193,34 @@ function TransactionViewer({ user }) {
                             objectFit: 'cover'
                           }}
                         />
+                      ) : (
+                        <Chip
+                          size="small"
+                          color="success"
+                          label="Balance Added"
+                          icon={<AdminPanelSettingsIcon fontSize="small" />}
+                          sx={{ mr: 2 }}
+                        />
                       )}
                       <Typography variant="body2">
-                        {transaction.SnackName}
+                        {transaction.SnackName || 'Deposit'}
                       </Typography>
                     </Box>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography variant="body2" color="error" fontWeight="bold">
-                      -{formatCurrency(transaction.TransactionAmount)}
-                    </Typography>
+                    {Number(transaction.TransactionAmount) < 0 ? (
+                      <Typography variant="body2" color="error" fontWeight="bold">
+                        -{formatCurrency(Math.abs(transaction.TransactionAmount))}
+                      </Typography>
+                    ) : (
+                      <Typography variant="body2" color="success.main" fontWeight="bold">
+                        +{formatCurrency(Math.abs(transaction.TransactionAmount))}
+                      </Typography>
+                    )}
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="body2">
-                      {formatCurrency(transaction.SnackPrice)}
+                      {transaction.SnackPrice != null ? formatCurrency(transaction.SnackPrice) : '-'}
                     </Typography>
                   </TableCell>
                   <TableCell align="center">

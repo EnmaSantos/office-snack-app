@@ -11,8 +11,8 @@ namespace SnackTracker.Api.Models
         [Required]
         public int UserId { get; set; }
 
-        [Required]
-        public int SnackId { get; set; }
+        // Make SnackId optional to support non-purchase transactions (e.g., balance additions)
+        public int? SnackId { get; set; }
 
         [Required]
         [Column(TypeName = "decimal(18,2)")]
@@ -24,6 +24,6 @@ namespace SnackTracker.Api.Models
         // FIX: Use the null-forgiving operator (!) to tell the compiler
         // that we know these will be populated by Entity Framework.
         public User User { get; set; } = null!;
-        public Snack Snack { get; set; } = null!;
+        public Snack? Snack { get; set; }
     }
 }

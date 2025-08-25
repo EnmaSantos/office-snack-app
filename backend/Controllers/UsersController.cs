@@ -36,6 +36,17 @@ namespace SnackTracker.Api.Controllers
             }
 
             user.Balance += request.Amount;
+
+            // Record a deposit transaction (no snack associated)
+            var depositTransaction = new Transaction
+            {
+                UserId = user.UserId,
+                SnackId = null,
+                TransactionAmount = request.Amount,
+                Timestamp = DateTime.UtcNow
+            };
+            _context.Transactions.Add(depositTransaction);
+
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Balance updated successfully.", newBalance = user.Balance });
@@ -60,9 +71,9 @@ namespace SnackTracker.Api.Controllers
                     t.TransactionId,
                     t.TransactionAmount,
                     t.Timestamp,
-                    SnackName = t.Snack.Name,
-                    SnackPrice = t.Snack.Price,
-                    SnackImageUrl = t.Snack.ImageUrl
+                    SnackName = t.Snack != null ? t.Snack.Name : null,
+                    SnackPrice = t.Snack != null ? t.Snack.Price : (decimal?)null,
+                    SnackImageUrl = t.Snack != null ? t.Snack.ImageUrl : null
                 })
                 .ToListAsync();
 
