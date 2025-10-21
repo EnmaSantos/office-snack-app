@@ -18,6 +18,7 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import SearchIcon from '@mui/icons-material/Search';
+import { API_BASE_URL } from '../config';
 
 function TransactionViewer({ user }) {
   const [transactions, setTransactions] = useState([]);
@@ -29,7 +30,7 @@ function TransactionViewer({ user }) {
   const fetchAllTransactions = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5106/api/Admin/all-transactions', {
+      const response = await fetch(`${API_BASE_URL}/api/Admin/all-transactions`, {
         headers: { 'X-User-Id': user.UserId },
       });
       

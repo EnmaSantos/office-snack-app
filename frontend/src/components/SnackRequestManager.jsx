@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { CheckCircleOutline, HourglassEmpty, DeleteOutline } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
+import { API_BASE_URL } from '../config';
 
 function SnackRequestManager({ user }) {
   const [requests, setRequests] = useState([]);
@@ -23,7 +24,7 @@ function SnackRequestManager({ user }) {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5106/api/snackrequests', {
+      const response = await fetch(`${API_BASE_URL}/api/snackrequests`, {
         headers: {
           'X-User-Id': user.UserId,
         },
@@ -53,7 +54,7 @@ function SnackRequestManager({ user }) {
     setRequests(requests.map(r => r.id === id ? updatedRequest : r));
 
     try {
-      const response = await fetch(`http://localhost:5106/api/snackrequests/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/snackrequests/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +76,7 @@ function SnackRequestManager({ user }) {
     setRequests(requests.filter(r => r.id !== id));
 
     try {
-      const response = await fetch(`http://localhost:5106/api/snackrequests/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/snackrequests/${id}`, {
         method: 'DELETE',
         headers: {
           'X-User-Id': user.UserId,

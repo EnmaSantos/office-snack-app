@@ -3,6 +3,7 @@ import { Box, Button, Table, TableBody, TableCell, TableContainer, TableHead, Ta
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SnackForm from './SnackForm';
+import { API_BASE_URL } from '../config';
 
 function SnackManager({ user }) {
   const [snacks, setSnacks] = useState([]);
@@ -13,7 +14,7 @@ function SnackManager({ user }) {
   // Function to fetch all snacks (we can reuse this to refresh the list)
   const fetchSnacks = async () => {
     setLoading(true);
-    const response = await fetch('http://localhost:5106/api/snacks');
+    const response = await fetch(`${API_BASE_URL}/api/snacks`);
     const data = await response.json();
     // Normalize API response (backend serializes to camelCase by default)
     const normalized = (Array.isArray(data) ? data : []).map((s) => ({
@@ -45,7 +46,7 @@ function SnackManager({ user }) {
   const handleDelete = async (snackId) => {
     // Use a confirmation dialog before deleting
     if (window.confirm('Are you sure you want to delete this snack? This action cannot be undone.')) {
-      await fetch(`http://localhost:5106/api/Admin/snacks/${snackId}`, {
+      await fetch(`${API_BASE_URL}/api/Admin/snacks/${snackId}`, {
         method: 'DELETE',
         headers: { 'X-User-Id': user.UserId },
       });

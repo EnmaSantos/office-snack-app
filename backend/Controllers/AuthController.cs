@@ -37,7 +37,9 @@ namespace SnackTracker.Api.Controllers
             if (!result.Succeeded)
             {
                 // If auth fails, redirect to frontend with an error
-                return Redirect("http://localhost:5173?error=auth_failed");
+                var frontendUrl = HttpContext.RequestServices
+                    .GetRequiredService<IConfiguration>()["FrontendUrl"] ?? "http://localhost:5173";
+                return Redirect($"{frontendUrl}?error=auth_failed");
             }
 
             var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
@@ -47,7 +49,9 @@ namespace SnackTracker.Api.Controllers
 
             if (string.IsNullOrEmpty(email))
             {
-                return Redirect("http://localhost:5173?error=email_missing");
+                var frontendUrl = HttpContext.RequestServices
+                    .GetRequiredService<IConfiguration>()["FrontendUrl"] ?? "http://localhost:5173";
+                return Redirect($"{frontendUrl}?error=email_missing");
             }
 
             if (!email.EndsWith("@byui.edu", StringComparison.OrdinalIgnoreCase))
@@ -55,7 +59,9 @@ namespace SnackTracker.Api.Controllers
                 // --- FIX ---
                 // If the domain is wrong, redirect to the frontend with a specific error message.
                 // This provides a much better user experience than a JSON error page.
-                return Redirect("http://localhost:5173?error=invalid_domain");
+                var frontendUrl = HttpContext.RequestServices
+                    .GetRequiredService<IConfiguration>()["FrontendUrl"] ?? "http://localhost:5173";
+                return Redirect($"{frontendUrl}?error=invalid_domain");
             }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
@@ -89,14 +95,18 @@ namespace SnackTracker.Api.Controllers
 
             var userJson = JsonSerializer.Serialize(user);
             var encodedUser = System.Web.HttpUtility.UrlEncode(userJson);
-            return Redirect($"http://localhost:5173?user={encodedUser}");
+            var frontendUrlSuccess = HttpContext.RequestServices
+                .GetRequiredService<IConfiguration>()["FrontendUrl"] ?? "http://localhost:5173";
+            return Redirect($"{frontendUrlSuccess}?user={encodedUser}");
         }
 
         [HttpGet("signout")]
         public async Task<IActionResult> SignOut()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Redirect("http://localhost:5173");
+            var frontendUrl = HttpContext.RequestServices
+                .GetRequiredService<IConfiguration>()["FrontendUrl"] ?? "http://localhost:5173";
+            return Redirect(frontendUrl);
         }
 
         // DEVELOPMENT ONLY: Toggle admin status for testing

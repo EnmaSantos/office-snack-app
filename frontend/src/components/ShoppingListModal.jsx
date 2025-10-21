@@ -25,6 +25,7 @@ import {
   Tab,
   Tabs
 } from '@mui/material';
+import { API_BASE_URL } from '../config';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -57,7 +58,7 @@ function ShoppingListModal({ open, onClose, user }) {
       setLoading(true);
       setError('');
       
-      const response = await fetch('http://localhost:5106/api/snacks', {
+      const response = await fetch(`${API_BASE_URL}/api/snacks`, {
         headers: {
           'X-User-Id': user.UserId,
         },
@@ -91,7 +92,7 @@ function ShoppingListModal({ open, onClose, user }) {
 
   const fetchSnackRequests = async () => {
     try {
-      const response = await fetch('http://localhost:5106/api/snackrequests', {
+      const response = await fetch(`${API_BASE_URL}/api/snackrequests`, {
         headers: {
           'X-User-Id': user.UserId,
         },
@@ -166,7 +167,7 @@ function ShoppingListModal({ open, onClose, user }) {
       setGenerating(true);
       setError('');
 
-      const response = await fetch('http://localhost:5106/api/Admin/generate-shopping-list', {
+      const response = await fetch(`${API_BASE_URL}/api/Admin/generate-shopping-list`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

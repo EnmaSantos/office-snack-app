@@ -27,6 +27,7 @@ import {
   Alert
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
+import { API_BASE_URL } from '../config';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 
@@ -46,7 +47,7 @@ function UserBalanceManager({ user }) {
   const fetchUserBalances = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5106/api/Admin/user-balances', {
+      const response = await fetch(`${API_BASE_URL}/api/Admin/user-balances`, {
         headers: { 'X-User-Id': user.UserId },
       });
       
@@ -82,7 +83,7 @@ function UserBalanceManager({ user }) {
 
     setLoadingTransactions(true);
     try {
-      const response = await fetch(`http://localhost:5106/api/Admin/user-transactions/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/Admin/user-transactions/${userId}`, {
         headers: { 'X-User-Id': user.UserId },
       });
       
@@ -138,7 +139,7 @@ function UserBalanceManager({ user }) {
 
     setToggleLoading(userId);
     try {
-      const response = await fetch('http://localhost:5106/api/Admin/toggle-admin-status', {
+      const response = await fetch(`${API_BASE_URL}/api/Admin/toggle-admin-status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

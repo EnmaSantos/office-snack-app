@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, CircularProgress, Alert } from '@mui/material';
+import { API_BASE_URL } from '../config';
 
 function SnackRequestForm({ user }) {
   const [snackName, setSnackName] = useState('');
@@ -17,7 +18,7 @@ function SnackRequestForm({ user }) {
     setFeedback({ message: '', severity: '' });
 
     try {
-      const response = await fetch('http://localhost:5106/api/snackrequests', {
+      const response = await fetch(`${API_BASE_URL}/api/snackrequests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

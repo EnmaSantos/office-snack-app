@@ -3,6 +3,7 @@ import { Drawer, Box, Typography, List, ListItem, ListItemText, IconButton, Butt
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import { API_BASE_URL } from '../config';
 
 // This component now has the real checkout logic
 function Cart({ cart, setCart, open, onClose, user, updateUser, setPurchaseStatus, refreshSnacks }) {
@@ -46,7 +47,7 @@ function Cart({ cart, setCart, open, onClose, user, updateUser, setPurchaseStatu
     const snackIds = cart.map(item => item.SnackId);
 
     try {
-      const response = await fetch('http://localhost:5106/api/snacks/checkout', {
+      const response = await fetch(`${API_BASE_URL}/api/snacks/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Link, Box, TextField, Alert } from '@mui/material';
+import { API_BASE_URL } from '../config';
 
 // This component is now a form for adding balance.
 function AddBalanceModal({ open, onClose, user, updateUser }) {
@@ -16,7 +17,7 @@ function AddBalanceModal({ open, onClose, user, updateUser }) {
     }
 
     try {
-        const response = await fetch('http://localhost:5106/api/users/add-balance', {
+        const response = await fetch(`${API_BASE_URL}/api/users/add-balance`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

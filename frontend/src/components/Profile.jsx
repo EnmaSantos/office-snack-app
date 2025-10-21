@@ -13,6 +13,7 @@ import {
   CardMedia
 } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
+import { API_BASE_URL } from '../config';
 
 function Profile({ user }) {
   const [transactions, setTransactions] = useState([]);
@@ -28,7 +29,7 @@ function Profile({ user }) {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:5106/api/users/transactions', {
+      const response = await fetch(`${API_BASE_URL}/api/users/transactions`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

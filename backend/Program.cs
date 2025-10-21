@@ -8,6 +8,9 @@ using Microsoft.OpenApi.Models;
 using SnackTracker.Api.Data;
 using System.Text.Json.Serialization;
 
+// Load environment variables from .env if present (for local/dev)
+DotNetEnv.Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // --- Database Configuration ---
@@ -117,12 +120,19 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// --- CORS: Allow frontend (Vite) origin ---
+// --- CORS: Allow frontend origin from configuration ---
 const string FrontendCorsPolicy = "Frontend";
+var frontendUrlSetting = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
+var frontendOrigins = frontendUrlSetting
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+if (frontendOrigins.Length == 0)
+{
+    frontendOrigins = new[] { "http://localhost:5173" };
+}
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(FrontendCorsPolicy, policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(frontendOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());

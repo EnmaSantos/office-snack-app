@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Typography, Box, Button, CircularProgress, Alert, IconButton, Badge, Avatar } from '@mui/material';
+import { Typography, Box, Button, CircularProgress, Alert, IconButton, Badge, Avatar, Card, CardContent, Chip } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PersonIcon from '@mui/icons-material/Person';
 import SnackList from './SnackList';
@@ -8,6 +8,7 @@ import AddBalanceModal from './AddBalanceModal';
 import AdminPage from './AdminPage';
 import Profile from './Profile';
 import SnackRequestForm from './SnackRequestForm';
+import { API_BASE_URL } from '../config';
 
 function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
   const [snacks, setSnacks] = useState([]);
@@ -96,7 +97,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
   const fetchSnacks = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5106/api/snacks');
+      const response = await fetch(`${API_BASE_URL}/api/snacks`);
       if (!response.ok) throw new Error('Network response was not ok');
       const data = await response.json();
       // Normalize backend camelCase to PascalCase for UI components
@@ -190,72 +191,111 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
   if (view === 'admin' && user?.IsAdmin) {
     return (
       <Box>
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between', 
-          alignItems: { xs: 'stretch', sm: 'center' },
-          mb: 2,
-          gap: { xs: 2, sm: 0 }
-        }}>
-          <Box sx={{ 
-            display: 'flex',
-            alignItems: 'center',
-            textAlign: { xs: 'center', sm: 'left' },
-            mb: { xs: 1, sm: 0 }
-          }}>
-            {user.ProfilePictureUrl && (
-              <Avatar 
-                src={user.ProfilePictureUrl} 
-                alt={user.DisplayName} 
-                sx={{ mr: 2, width: 56, height: 56 }} 
-              />
-            )}
-            <div>
-              <Typography variant="h5" sx={{ 
-                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+        <Card 
+          sx={{ 
+            mb: 3,
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+            border: '1px solid rgba(0, 110, 182, 0.1)',
+            boxShadow: '0 4px 20px rgba(0, 110, 182, 0.1)',
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 2, sm: 0 }
+            }}>
+              <Box sx={{ 
+                display: 'flex',
+                alignItems: 'center',
+                textAlign: { xs: 'center', sm: 'left' }
               }}>
-                Welcome, {user.DisplayName}!
-              </Typography>
-              <Typography variant="h6" sx={{ 
-                fontSize: { xs: '1rem', sm: '1.25rem' }
+                {user.ProfilePictureUrl && (
+                  <Avatar 
+                    src={user.ProfilePictureUrl} 
+                    alt={user.DisplayName} 
+                    sx={{ 
+                      mr: 2, 
+                      width: 64, 
+                      height: 64,
+                      border: '3px solid #006EB6',
+                      boxShadow: '0 4px 12px rgba(0, 110, 182, 0.2)'
+                    }} 
+                  />
+                )}
+                <Box>
+                  <Typography variant="h5" sx={{ 
+                    fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                    color: '#006EB6',
+                    fontWeight: '600',
+                    mb: 0.5
+                  }}>
+                    Admin Panel - {user.DisplayName}
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: '#666', mb: 1 }}>
+                    Balance: ${formattedBalance}
+                  </Typography>
+                  <Chip 
+                    label="Administrator" 
+                    color="primary" 
+                    size="small"
+                    sx={{ 
+                      backgroundColor: '#006EB6',
+                      color: 'white',
+                      fontWeight: '500'
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: { xs: 1, sm: 1 },
+                width: { xs: '100%', sm: 'auto' }
               }}>
-                Your current balance is: ${formattedBalance}
-              </Typography>
-            </div>
-          </Box>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: { xs: 1, sm: 0 },
-            width: { xs: '100%', sm: 'auto' }
-          }}>
-            <Button 
-              variant="outlined" 
-              color="primary" 
-              onClick={() => setView('dashboard')} 
-              sx={{ 
-                mr: { xs: 0, sm: 1 },
-                width: { xs: '100%', sm: 'auto' },
-                fontSize: { xs: '0.875rem', sm: '0.875rem' }
-              }}
-            >
-              BACK TO DASHBOARD
-            </Button>
-            <Button 
-              variant="outlined" 
-              color="primary" 
-              onClick={onLogout}
-              sx={{ 
-                width: { xs: '100%', sm: 'auto' },
-                fontSize: { xs: '0.875rem', sm: '0.875rem' }
-              }}
-            >
-              LOGOUT
-            </Button>
-          </Box>
-        </Box>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => setView('dashboard')} 
+                  sx={{ 
+                    borderColor: '#006EB6',
+                    color: '#006EB6',
+                    '&:hover': {
+                      borderColor: '#005694',
+                      backgroundColor: 'rgba(0, 110, 182, 0.05)',
+                    },
+                    width: { xs: '100%', sm: 'auto' },
+                    fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                    textTransform: 'none',
+                    fontWeight: '500'
+                  }}
+                >
+                  Back to Dashboard
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  onClick={onLogout}
+                  sx={{ 
+                    borderColor: '#006EB6',
+                    color: '#006EB6',
+                    '&:hover': {
+                      borderColor: '#005694',
+                      backgroundColor: 'rgba(0, 110, 182, 0.05)',
+                    },
+                    width: { xs: '100%', sm: 'auto' },
+                    fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                    textTransform: 'none',
+                    fontWeight: '500'
+                  }}
+                >
+                  Logout
+                </Button>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
         <AdminPage user={user} setView={setView} />
       </Box>
     );
@@ -264,52 +304,77 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
   if (view === 'profile') {
     return (
       <Box>
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between', 
-          alignItems: { xs: 'stretch', sm: 'center' },
-          mb: 2,
-          gap: { xs: 2, sm: 0 }
-        }}>
-          <Typography variant="h5" sx={{ 
-            fontSize: { xs: '1.25rem', sm: '1.5rem' },
-            textAlign: { xs: 'center', sm: 'left' }
-          }}>
-            My Profile
-          </Typography>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: { xs: 1, sm: 0 },
-            width: { xs: '100%', sm: 'auto' }
-          }}>
-            <Button 
-              variant="outlined" 
-              color="primary" 
-              onClick={() => setView('dashboard')} 
-              sx={{ 
-                mr: { xs: 0, sm: 1 },
-                width: { xs: '100%', sm: 'auto' },
-                fontSize: { xs: '0.875rem', sm: '0.875rem' }
-              }}
-            >
-              BACK TO DASHBOARD
-            </Button>
-            <Button 
-              variant="outlined" 
-              color="primary" 
-              onClick={onLogout}
-              sx={{ 
-                width: { xs: '100%', sm: 'auto' },
-                fontSize: { xs: '0.875rem', sm: '0.875rem' }
-              }}
-            >
-              LOGOUT
-            </Button>
-          </Box>
-        </Box>
+        <Card 
+          sx={{ 
+            mb: 3,
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+            border: '1px solid rgba(0, 110, 182, 0.1)',
+            boxShadow: '0 4px 20px rgba(0, 110, 182, 0.1)',
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 2, sm: 0 }
+            }}>
+              <Typography variant="h5" sx={{ 
+                fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                textAlign: { xs: 'center', sm: 'left' },
+                color: '#006EB6',
+                fontWeight: '600'
+              }}>
+                My Profile
+              </Typography>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center',
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: { xs: 1, sm: 1 },
+                width: { xs: '100%', sm: 'auto' }
+              }}>
+                <Button 
+                  variant="outlined" 
+                  onClick={() => setView('dashboard')} 
+                  sx={{ 
+                    borderColor: '#006EB6',
+                    color: '#006EB6',
+                    '&:hover': {
+                      borderColor: '#005694',
+                      backgroundColor: 'rgba(0, 110, 182, 0.05)',
+                    },
+                    width: { xs: '100%', sm: 'auto' },
+                    fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                    textTransform: 'none',
+                    fontWeight: '500'
+                  }}
+                >
+                  Back to Dashboard
+                </Button>
+                <Button 
+                  variant="outlined" 
+                  onClick={onLogout}
+                  sx={{ 
+                    borderColor: '#006EB6',
+                    color: '#006EB6',
+                    '&:hover': {
+                      borderColor: '#005694',
+                      backgroundColor: 'rgba(0, 110, 182, 0.05)',
+                    },
+                    width: { xs: '100%', sm: 'auto' },
+                    fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                    textTransform: 'none',
+                    fontWeight: '500'
+                  }}
+                >
+                  Logout
+                </Button>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
         <Profile user={user} />
       </Box>
     );
@@ -317,140 +382,205 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
 
   return (
     <Box>
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: { xs: 'column', sm: 'row' }, // Stack vertically on mobile
-        justifyContent: 'space-between', 
-        alignItems: { xs: 'stretch', sm: 'center' }, // Full width on mobile
-        mb: 2,
-        gap: { xs: 2, sm: 0 } // Add gap between sections on mobile
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          textAlign: { xs: 'center', sm: 'left' }, 
-          mb: { xs: 1, sm: 0 }
-        }}>
-          {user.ProfilePictureUrl && (
-            <Avatar 
-              src={user.ProfilePictureUrl} 
-              alt={user.DisplayName} 
-              sx={{ mr: 2, width: 56, height: 56 }} 
-            />
-          )}
-          <div>
-            <Typography variant="h5" sx={{ 
-              fontSize: { xs: '1.25rem', sm: '1.5rem' }
-            }}>
-              Welcome, {user.DisplayName}!
-            </Typography>
-            <Typography variant="h6" sx={{ 
-              fontSize: { xs: '1rem', sm: '1.25rem' }
-            }}>
-            Your current balance is:{' '}
-            <Box component="span" sx={{ position: 'relative', display: 'inline-block' }}>
-              {/* Animated balance value */}
-              <span 
-                ref={balanceRef}
-                style={{ 
-                  color: user.Balance < 0 ? '#d32f2f' : 'inherit',
-                  fontWeight: user.Balance < 0 ? 'bold' : 'normal'
-                }}
-              >
-                ${(typeof user.Balance === 'number' ? user.Balance : 0).toFixed(2)}
-                {user.Balance < 0 && ' (owes)'}
-              </span>
-              {/* Floating +delta badge */}
-              <Box
-                component="span"
-                ref={plusRef}
-                sx={{
-                  position: 'absolute',
-                  left: 0,
-                  top: -24,
-                  fontWeight: 700,
-                  opacity: 0,
-                }}
-              >
-                +0.00
-              </Box>
-            </Box>
-          </Typography>
-        </div>
-        </Box>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons vertically on mobile
-          gap: { xs: 1, sm: 0 }, // Add gap between buttons on mobile
-          width: { xs: '100%', sm: 'auto' }
-        }}>
-          {user?.IsAdmin && (
-            <Button 
-              variant="contained" 
-              color="secondary" 
-              onClick={() => setView('admin')} 
-              sx={{ 
-                mr: { xs: 0, sm: 1 },
-                width: { xs: '100%', sm: 'auto' }, // Full width on mobile
-                fontSize: { xs: '0.875rem', sm: '0.875rem' }
-              }}
-            >
-              OPEN ADMIN PANEL
-            </Button>
-          )}
-          <Button 
-            variant="contained" 
-            onClick={() => setIsBalanceModalOpen(true)} 
-            sx={{ 
-              mr: { xs: 0, sm: 2 },
-              width: { xs: '100%', sm: 'auto' }, // Full width on mobile
-              fontSize: { xs: '0.875rem', sm: '0.875rem' }
-            }}
-          >
-            ADD BALANCE
-          </Button>
+      {/* User Info Card */}
+      <Card 
+        sx={{ 
+          mb: 3,
+          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+          border: '1px solid rgba(0, 110, 182, 0.1)',
+          boxShadow: '0 4px 20px rgba(0, 110, 182, 0.1)',
+        }}
+      >
+        <CardContent sx={{ p: 3 }}>
           <Box sx={{ 
             display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: { xs: 'center', sm: 'flex-start' },
-            width: { xs: '100%', sm: 'auto' },
-            gap: { xs: 2, sm: 2 }
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'stretch', sm: 'center' },
+            gap: { xs: 2, sm: 0 }
           }}>
-            <IconButton 
-              color="primary" 
-              onClick={() => setView('profile')} 
-              sx={{ 
-                mr: { xs: 0, sm: 1 }
-              }}
-            >
-              <PersonIcon />
-            </IconButton>
-            <IconButton 
-              color="primary" 
-              onClick={() => setIsCartOpen(true)} 
-              sx={{ 
-                mr: { xs: 0, sm: 2 }
-              }}
-            >
-              <Badge badgeContent={cart.length} color="error">
-                <ShoppingCartIcon />
-              </Badge>
-            </IconButton>
-            <Button 
-              variant="outlined" 
-              color="primary" 
-              onClick={onLogout}
-              sx={{ 
-                width: { xs: 'auto', sm: 'auto' },
-                fontSize: { xs: '0.875rem', sm: '0.875rem' }
-              }}
-            >
-              LOGOUT
-            </Button>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              textAlign: { xs: 'center', sm: 'left' }
+            }}>
+              {user.ProfilePictureUrl && (
+                <Avatar 
+                  src={user.ProfilePictureUrl} 
+                  alt={user.DisplayName} 
+                  sx={{ 
+                    mr: 2, 
+                    width: 64, 
+                    height: 64,
+                    border: '3px solid #006EB6',
+                    boxShadow: '0 4px 12px rgba(0, 110, 182, 0.2)'
+                  }} 
+                />
+              )}
+              <Box>
+                <Typography variant="h5" sx={{ 
+                  fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                  color: '#006EB6',
+                  fontWeight: '600',
+                  mb: 0.5
+                }}>
+                  Welcome, {user.DisplayName}!
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Typography variant="body1" sx={{ color: '#666' }}>
+                    Current Balance:
+                  </Typography>
+                  <Box component="span" sx={{ position: 'relative', display: 'inline-block' }}>
+                    <Chip
+                      label={
+                        <span 
+                          ref={balanceRef}
+                          style={{ 
+                            fontWeight: 'bold',
+                            fontSize: '1.1rem'
+                          }}
+                        >
+                          ${(typeof user.Balance === 'number' ? user.Balance : 0).toFixed(2)}
+                          {user.Balance < 0 && ' (owes)'}
+                        </span>
+                      }
+                      color={user.Balance < 0 ? 'error' : 'success'}
+                      variant="filled"
+                      sx={{ 
+                        fontWeight: 'bold',
+                        px: 1,
+                        '& .MuiChip-label': {
+                          fontSize: '1.1rem'
+                        }
+                      }}
+                    />
+                    <Box
+                      component="span"
+                      ref={plusRef}
+                      sx={{
+                        position: 'absolute',
+                        left: 0,
+                        top: -24,
+                        fontWeight: 700,
+                        opacity: 0,
+                      }}
+                    >
+                      +0.00
+                    </Box>
+                  </Box>
+                </Box>
+                {user?.IsAdmin && (
+                  <Chip 
+                    label="Administrator" 
+                    color="primary" 
+                    size="small"
+                    sx={{ 
+                      backgroundColor: '#006EB6',
+                      color: 'white',
+                      fontWeight: '500'
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+            
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 1, sm: 1 },
+              width: { xs: '100%', sm: 'auto' }
+            }}>
+              {user?.IsAdmin && (
+                <Button 
+                  variant="contained" 
+                  onClick={() => setView('admin')} 
+                  sx={{ 
+                    backgroundColor: '#006EB6',
+                    '&:hover': {
+                      backgroundColor: '#005694',
+                    },
+                    width: { xs: '100%', sm: 'auto' },
+                    fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                    textTransform: 'none',
+                    fontWeight: '500'
+                  }}
+                >
+                  Admin Panel
+                </Button>
+              )}
+              <Button 
+                variant="contained" 
+                onClick={() => setIsBalanceModalOpen(true)} 
+                sx={{ 
+                  backgroundColor: '#4CAF50',
+                  '&:hover': {
+                    backgroundColor: '#45a049',
+                  },
+                  width: { xs: '100%', sm: 'auto' },
+                  fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                  textTransform: 'none',
+                  fontWeight: '500'
+                }}
+              >
+                Add Balance
+              </Button>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: { xs: 'center', sm: 'flex-start' },
+                width: { xs: '100%', sm: 'auto' },
+                gap: 1
+              }}>
+                <IconButton 
+                  onClick={() => setView('profile')} 
+                  sx={{ 
+                    backgroundColor: 'rgba(0, 110, 182, 0.1)',
+                    color: '#006EB6',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 110, 182, 0.2)',
+                    }
+                  }}
+                >
+                  <PersonIcon />
+                </IconButton>
+                <IconButton 
+                  onClick={() => setIsCartOpen(true)} 
+                  sx={{ 
+                    backgroundColor: 'rgba(0, 110, 182, 0.1)',
+                    color: '#006EB6',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 110, 182, 0.2)',
+                    }
+                  }}
+                >
+                  <Badge badgeContent={cart.length} color="error">
+                    <ShoppingCartIcon />
+                  </Badge>
+                </IconButton>
+                <Button 
+                  variant="outlined" 
+                  onClick={onLogout}
+                  sx={{ 
+                    borderColor: '#006EB6',
+                    color: '#006EB6',
+                    '&:hover': {
+                      borderColor: '#005694',
+                      backgroundColor: 'rgba(0, 110, 182, 0.05)',
+                    },
+                    width: { xs: 'auto', sm: 'auto' },
+                    fontSize: { xs: '0.875rem', sm: '0.875rem' },
+                    textTransform: 'none',
+                    fontWeight: '500'
+                  }}
+                >
+                  Logout
+                </Button>
+              </Box>
+            </Box>
           </Box>
-        </Box>
-      </Box>
+        </CardContent>
+      </Card>
 
       {purchaseStatus.message && (
         <Alert severity={purchaseStatus.severity} sx={{ mb: 2, mt: 2 }} onClose={() => setPurchaseStatus({ message: ''})}>

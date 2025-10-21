@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Switch, FormControlLabel } from '@mui/material';
 
 // This component is a pop-up form for creating and editing snacks.
@@ -39,8 +40,8 @@ function SnackForm({ open, onClose, snack, user, refreshSnacks }) {
     e.preventDefault();
     const isEditing = Boolean(snack && snack.SnackId);
     const url = isEditing 
-      ? `http://localhost:5106/api/Admin/snacks/${snack.SnackId}` 
-      : 'http://localhost:5106/api/Admin/snacks';
+      ? `${API_BASE_URL}/api/Admin/snacks/${snack.SnackId}` 
+      : `${API_BASE_URL}/api/Admin/snacks`;
     const method = isEditing ? 'PUT' : 'POST';
 
     const body = {
