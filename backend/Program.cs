@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Authentication.Google; // Add this
 using Microsoft.AspNetCore.Authentication.Cookies; // Add this
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SnackTracker.Api.Data;
@@ -12,6 +13,14 @@ using System.Text.Json.Serialization;
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure forwarded headers for proxy support
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // --- Database Configuration ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
@@ -139,6 +148,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Use forwarded headers from proxy (Nginx)
+app.UseForwardedHeaders();
 
 app.SeedDatabase();
 
