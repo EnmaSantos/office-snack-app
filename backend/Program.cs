@@ -93,6 +93,12 @@ builder.Services.AddAuthentication(options =>
 
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
+        
+        // Set the callback path to match our controller route
+        // Combined with UsePathBase("/snacks-api"), this will generate:
+        // https://ftcemp.byui.edu/snacks-api/api/auth/google-callback
+        options.CallbackPath = "/api/auth/google-callback";
+        
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.ClaimActions.MapJsonKey("picture", "picture", "url");
