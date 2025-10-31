@@ -12,6 +12,7 @@ frontend/node_modules/
 # Build results
 [Bb]in/
 [Oo]bj/
+backend/publish/
 
 # Rider files
 .idea/
