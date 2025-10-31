@@ -93,7 +93,6 @@ builder.Services.AddAuthentication(options =>
 
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
-        options.CallbackPath = "/api/auth/google-callback";
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.ClaimActions.MapJsonKey("picture", "picture", "url");
