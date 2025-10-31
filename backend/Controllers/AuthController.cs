@@ -26,7 +26,13 @@ namespace SnackTracker.Api.Controllers
         [HttpGet("signin-google")]
         public IActionResult SignInWithGoogle()
         {
-            var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(GoogleSignInCallback)) };
+            // Get the ApiBaseUrl from configuration to construct the full callback URL
+            // This is needed because nginx proxy rewrites paths, and Url.Action() doesn't account for that
+            var configuration = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+            var apiBaseUrl = configuration["ApiBaseUrl"] ?? "http://localhost:5106";
+            var callbackUrl = $"{apiBaseUrl}/api/auth/google-callback";
+            
+            var properties = new AuthenticationProperties { RedirectUri = callbackUrl };
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
