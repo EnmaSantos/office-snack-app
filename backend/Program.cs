@@ -100,38 +100,6 @@ builder.Services.AddAuthentication(options =>
         // Set correlation cookie path to root to work with nginx rewrite
         options.CorrelationCookie.Path = "/";
         
-        // Get the full API base URL for OAuth callbacks
-        var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5106";
-        var fullCallbackUrl = $"{apiBaseUrl}/api/auth/google-callback";
-        
-        // Events to handle the OAuth flow with custom redirect URI
-        options.Events.OnRedirectToAuthorizationEndpoint = context =>
-        {
-            // Override the redirect URI to include the full path with /snacks-api prefix
-            var redirectUri = context.RedirectUri;
-            var uriBuilder = new UriBuilder(redirectUri);
-            var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
-            query["redirect_uri"] = fullCallbackUrl;
-            uriBuilder.Query = query.ToString();
-            
-            context.Response.Redirect(uriBuilder.ToString());
-            return Task.CompletedTask;
-        };
-        
-        // Override token creation to use the same redirect URI
-        options.Events.OnCreatingTicket = context =>
-        {
-            // The token exchange already happened at this point, but we need to set it earlier
-            return Task.CompletedTask;
-        };
-        
-        // Set the redirect URI that will be used in token exchange
-        options.Events.OnAuthorizationCodeReceived = context =>
-        {
-            context.TokenEndpointRequest.SetParameter("redirect_uri", fullCallbackUrl);
-            return Task.CompletedTask;
-        };
-        
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.ClaimActions.MapJsonKey("picture", "picture", "url");
