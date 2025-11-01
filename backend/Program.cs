@@ -17,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure forwarded headers for proxy support
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost | ForwardedHeaders.XForwardedPrefix;
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
 });
