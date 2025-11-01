@@ -97,6 +97,9 @@ builder.Services.AddAuthentication(options =>
         // Explicitly set the callback path
         options.CallbackPath = "/api/auth/google-callback";
         
+        // Set correlation cookie path to root to work with nginx rewrite
+        options.CorrelationCookie.Path = "/";
+        
         // Events to handle the OAuth callback and set the redirect URI
         options.Events.OnRedirectToAuthorizationEndpoint = context =>
         {
