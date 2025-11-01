@@ -94,10 +94,26 @@ builder.Services.AddAuthentication(options =>
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
         
-        // Set the callback path to match our controller route
-        // Combined with UsePathBase("/snacks-api"), this will generate:
-        // https://ftcemp.byui.edu/snacks-api/api/auth/google-callback
+        // Explicitly set the callback path
         options.CallbackPath = "/api/auth/google-callback";
+        
+        // Events to handle the OAuth callback and set the redirect URI
+        options.Events.OnRedirectToAuthorizationEndpoint = context =>
+        {
+            // Override the redirect URI to include the full path with /snacks-api prefix
+            var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5106";
+            var callbackUrl = $"{apiBaseUrl}/api/auth/google-callback";
+            
+            // Replace the redirect_uri parameter in the redirect URL
+            var redirectUri = context.RedirectUri;
+            var uriBuilder = new UriBuilder(redirectUri);
+            var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
+            query["redirect_uri"] = callbackUrl;
+            uriBuilder.Query = query.ToString();
+            
+            context.Response.Redirect(uriBuilder.ToString());
+            return Task.CompletedTask;
+        };
         
         options.Scope.Add("openid");
         options.Scope.Add("profile");
