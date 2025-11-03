@@ -94,10 +94,7 @@ builder.Services.AddAuthentication(options =>
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
         
-        // Explicitly set the callback path
-        options.CallbackPath = "/api/auth/google-callback";
-        
-        // Set correlation cookie path to root to work with nginx rewrite
+        // Set correlation cookie path to root for broader accessibility
         options.CorrelationCookie.Path = "/";
         
         options.Scope.Add("openid");
