@@ -159,6 +159,12 @@ var app = builder.Build();
 // Use forwarded headers from proxy (Nginx)
 app.UseForwardedHeaders();
 
+// Set PathBase for nginx reverse proxy - nginx passes full path including /snacks-api
+if (!app.Environment.IsDevelopment())
+{
+    app.UsePathBase("/snacks-api");
+}
+
 app.SeedDatabase();
 
 // --- Configure the HTTP request pipeline. ---
