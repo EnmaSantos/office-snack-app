@@ -98,7 +98,8 @@ builder.Services.AddAuthentication(options =>
         options.CallbackPath = "/api/auth/google-callback";
         
         // Cookie configuration for reverse proxy scenarios
-        // UsePathBase will automatically prepend /snacks-api to cookie paths in production
+        // Set cookie path to root so it's accessible across all paths
+        options.CorrelationCookie.Path = "/";
         options.CorrelationCookie.SameSite = SameSiteMode.Lax;
         
         // In production, ensure cookies work with HTTPS
