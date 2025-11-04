@@ -163,15 +163,9 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Use forwarded headers from proxy (Nginx) - MUST come first
+// Use forwarded headers from proxy (Nginx)
+// This processes X-Forwarded-Prefix header set by nginx
 app.UseForwardedHeaders();
-
-// Set path base for reverse proxy deployment
-// This tells ASP.NET Core that it's running under /snacks-api prefix
-if (!app.Environment.IsDevelopment())
-{
-    app.UsePathBase("/snacks-api");
-}
 
 app.SeedDatabase();
 
