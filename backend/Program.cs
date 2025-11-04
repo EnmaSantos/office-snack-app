@@ -98,17 +98,14 @@ builder.Services.AddAuthentication(options =>
         options.CallbackPath = "/api/auth/google-callback";
         
         // Cookie configuration for reverse proxy scenarios
-        // In production behind nginx at /snacks-api, set cookie path to match
+        // UsePathBase will automatically prepend /snacks-api to cookie paths in production
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        
+        // In production, ensure cookies work with HTTPS
         if (!builder.Environment.IsDevelopment())
         {
-            options.CorrelationCookie.Path = "/snacks-api";
             options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
         }
-        else
-        {
-            options.CorrelationCookie.Path = "/";
-        }
-        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
         
         options.Scope.Add("openid");
         options.Scope.Add("profile");
@@ -166,9 +163,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Use forwarded headers from proxy (Nginx)
-// This processes X-Forwarded-Prefix header set by nginx, so no need for UsePathBase
+// Use forwarded headers from proxy (Nginx) - MUST come first
 app.UseForwardedHeaders();
+
+// Set path base for reverse proxy deployment
+// This tells ASP.NET Core that it's running under /snacks-api prefix
+if (!app.Environment.IsDevelopment())
+{
+    app.UsePathBase("/snacks-api");
+}
 
 app.SeedDatabase();
 
