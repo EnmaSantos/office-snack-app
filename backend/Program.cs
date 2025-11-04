@@ -97,15 +97,18 @@ builder.Services.AddAuthentication(options =>
         // Set the callback path to match our controller route
         options.CallbackPath = "/api/auth/google-callback";
         
-        // Cookie configuration for path base scenarios
-        options.CorrelationCookie.Path = "/";
-        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        
-        // In production, ensure cookies work with HTTPS
+        // Cookie configuration for reverse proxy scenarios
+        // In production behind nginx at /snacks-api, set cookie path to match
         if (!builder.Environment.IsDevelopment())
         {
+            options.CorrelationCookie.Path = "/snacks-api";
             options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
         }
+        else
+        {
+            options.CorrelationCookie.Path = "/";
+        }
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
         
         options.Scope.Add("openid");
         options.Scope.Add("profile");
