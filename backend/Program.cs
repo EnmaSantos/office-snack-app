@@ -97,8 +97,15 @@ builder.Services.AddAuthentication(options =>
         // Set the callback path to match our controller route
         options.CallbackPath = "/api/auth/google-callback";
         
-        // Set correlation cookie path to root for broader accessibility
+        // Cookie configuration for path base scenarios
         options.CorrelationCookie.Path = "/";
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        
+        // In production, ensure cookies work with HTTPS
+        if (!builder.Environment.IsDevelopment())
+        {
+            options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+        }
         
         options.Scope.Add("openid");
         options.Scope.Add("profile");
@@ -155,6 +162,13 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Set path base for reverse proxy deployment
+// This tells ASP.NET Core that it's running under /snacks-api prefix
+if (!app.Environment.IsDevelopment())
+{
+    app.UsePathBase("/snacks-api");
+}
 
 // Use forwarded headers from proxy (Nginx)
 app.UseForwardedHeaders();
