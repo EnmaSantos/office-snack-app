@@ -41,6 +41,7 @@ builder.Services.AddAuthentication(options =>
     {
         options.Cookie.Name = "SnackTracker.Auth";
         options.Cookie.HttpOnly = true;
+        options.Cookie.Path = "/";
 
         if (builder.Environment.IsDevelopment())
         {
@@ -98,15 +99,10 @@ builder.Services.AddAuthentication(options =>
         options.CallbackPath = "/api/auth/google-callback";
         
         // Cookie configuration for reverse proxy scenarios
-        // Set cookie path to root so it's accessible across all paths
+        // Use SameSite=None for OAuth flow that involves Google redirects
         options.CorrelationCookie.Path = "/";
-        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        
-        // In production, ensure cookies work with HTTPS
-        if (!builder.Environment.IsDevelopment())
-        {
-            options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-        }
+        options.CorrelationCookie.SameSite = SameSiteMode.None;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
         
         options.Scope.Add("openid");
         options.Scope.Add("profile");
