@@ -71,17 +71,17 @@ function Profile({ user }) {
   };
 
   const totalSpent = transactions.reduce((sum, transaction) => {
-    const amount = transaction.TransactionAmount || transaction.transactionAmount;
+    const amount = transaction.TransactionAmount;
     return amount < 0 ? sum + Math.abs(amount) : sum;
   }, 0);
 
   const totalAdded = transactions.reduce((sum, transaction) => {
-    const amount = transaction.TransactionAmount || transaction.transactionAmount;
+    const amount = transaction.TransactionAmount;
     return amount > 0 ? sum + amount : sum;
   }, 0);
 
   const purchaseTransactions = transactions.filter(t => {
-    const amount = t.TransactionAmount || t.transactionAmount;
+    const amount = t.TransactionAmount;
     return amount < 0;
   });
 
@@ -200,7 +200,7 @@ function Profile({ user }) {
           {!loading && !error && transactions.length > 0 && (
             <Box>
               {transactions.map((transaction, index) => (
-                <Box key={transaction.transactionId}>
+                <Box key={transaction.TransactionId}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -210,7 +210,7 @@ function Profile({ user }) {
                     }}
                   >
                     {/* Snack Image (for purchases) */}
-                    {transaction.snackImageUrl && (
+                    {transaction.SnackImageUrl && (
                       <CardMedia
                         component="img"
                         sx={{
@@ -220,13 +220,13 @@ function Profile({ user }) {
                           objectFit: 'cover',
                           mr: 2
                         }}
-                        image={transaction.snackImageUrl}
-                        alt={transaction.snackName}
+                        image={transaction.SnackImageUrl}
+                        alt={transaction.SnackName}
                       />
                     )}
                     
                     {/* Transaction Icon for balance additions */}
-                    {!transaction.snackImageUrl && (
+                    {!transaction.SnackImageUrl && (
                       <Avatar
                         sx={{
                           width: 60,
@@ -243,13 +243,13 @@ function Profile({ user }) {
                     {/* Transaction Details */}
                     <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                       <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                        {transaction.snackName || 'Balance Added'}
+                        {transaction.SnackName || 'Balance Added'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {formatDate(transaction.timestamp)}
+                        {formatDate(transaction.Timestamp)}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {getTimeAgo(transaction.timestamp)}
+                        {getTimeAgo(transaction.Timestamp)}
                       </Typography>
                     </Box>
 
@@ -259,15 +259,15 @@ function Profile({ user }) {
                         variant="h6"
                         sx={{
                           fontWeight: 'bold',
-                          color: (transaction.TransactionAmount || transaction.transactionAmount) < 0 ? '#f44336' : '#4caf50'
+                          color: transaction.TransactionAmount < 0 ? '#f44336' : '#4caf50'
                         }}
                       >
-                        {(transaction.TransactionAmount || transaction.transactionAmount) < 0 ? '-' : '+'}$
-                        {Math.abs(transaction.TransactionAmount || transaction.transactionAmount).toFixed(2)}
+                        {transaction.TransactionAmount < 0 ? '-' : '+'}$
+                        {Math.abs(transaction.TransactionAmount).toFixed(2)}
                       </Typography>
-                      {transaction.snackPrice && (
+                      {transaction.SnackPrice && (
                         <Typography variant="caption" color="text.secondary">
-                          ${transaction.snackPrice.toFixed(2)} each
+                          ${transaction.SnackPrice.toFixed(2)} each
                         </Typography>
                       )}
                     </Box>
