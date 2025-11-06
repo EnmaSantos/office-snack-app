@@ -55,12 +55,12 @@ function UserBalanceManager({ user }) {
         const data = await response.json();
         // Normalize the response to handle both camelCase and PascalCase
         const normalizedUsers = data.map(userData => ({
-          UserId: userData.UserId || userData.userId,
-          Email: userData.Email || userData.email,
-          DisplayName: userData.DisplayName || userData.displayName,
-          Balance: userData.Balance || userData.balance,
-          IsAdmin: userData.IsAdmin || userData.isAdmin,
-          ProfilePictureUrl: userData.ProfilePictureUrl || userData.profilePictureUrl
+          UserId: userData.UserId ?? userData.userId,
+          Email: userData.Email ?? userData.email,
+          DisplayName: userData.DisplayName ?? userData.displayName,
+          Balance: userData.Balance ?? userData.balance ?? 0,
+          IsAdmin: userData.IsAdmin ?? userData.isAdmin,
+          ProfilePictureUrl: userData.ProfilePictureUrl ?? userData.profilePictureUrl
         }));
         setUsers(normalizedUsers);
       } else {
