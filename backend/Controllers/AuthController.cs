@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SnackTracker.Api.Data;
@@ -17,89 +16,135 @@ namespace SnackTracker.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly SnackTrackerContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(SnackTrackerContext context)
+        public AuthController(SnackTrackerContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
-        [HttpGet("signin-google")]
-        public IActionResult SignInWithGoogle()
+        // Sync authentication with main site
+        [HttpPost("sync-main-site")]
+        public async Task<IActionResult> SyncWithMainSite()
         {
-            // Let ASP.NET Core's OAuth middleware handle the redirect URI automatically
-            // It will use the CallbackPath configured in Program.cs along with the PathBase
-            var properties = new AuthenticationProperties();
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        }
-
-        [HttpGet("google-callback")]
-        public async Task<IActionResult> GoogleSignInCallback()
-        {
-            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
-            if (!result.Succeeded)
+            try
             {
-                // If auth fails, redirect to frontend with an error
-                var frontendUrl = HttpContext.RequestServices
-                    .GetRequiredService<IConfiguration>()["FrontendUrl"] ?? "http://localhost:5173";
-                return Redirect($"{frontendUrl}?error=auth_failed");
+                // Call main site's auth status endpoint
+                var mainSiteUrl = _configuration["MainSiteUrl"] ?? "https://ftcemp.byui.edu";
+                var httpClient = _httpClientFactory.CreateClient();
+                
+                // Forward the cookies from the request
+                var cookieHeader = Request.Headers["Cookie"].ToString();
+                if (!string.IsNullOrEmpty(cookieHeader))
+                {
+                    httpClient.DefaultRequestHeaders.Add("Cookie", cookieHeader);
+                }
+
+                var response = await httpClient.GetAsync($"{mainSiteUrl}/auth/status");
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    return Unauthorized(new { message = "Not authenticated on main site" });
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                var authStatus = JsonSerializer.Deserialize<MainSiteAuthStatus>(content, new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true 
+                });
+
+                if (authStatus == null || !authStatus.IsAuthenticated || authStatus.User == null)
+                {
+                    return Unauthorized(new { message = "Not authenticated on main site" });
+                }
+
+                var email = authStatus.User.Email;
+                var displayName = authStatus.User.DisplayName;
+                var profilePictureUrl = authStatus.User.ProfilePhoto;
+
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest(new { message = "Email not found in main site auth" });
+                }
+
+                // Find or create user in our database
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (user == null)
+                {
+                    user = new User 
+                    { 
+                        Email = email, 
+                        DisplayName = displayName,
+                        ProfilePictureUrl = profilePictureUrl 
+                    };
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    // Update user info if it changed
+                    var updated = false;
+                    if (user.DisplayName != displayName)
+                    {
+                        user.DisplayName = displayName;
+                        updated = true;
+                    }
+                    if (user.ProfilePictureUrl != profilePictureUrl)
+                    {
+                        user.ProfilePictureUrl = profilePictureUrl;
+                        updated = true;
+                    }
+                    if (updated)
+                    {
+                        await _context.SaveChangesAsync();
+                    }
+                }
+
+                // Sign into our cookie scheme
+                var identity = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Name, user.DisplayName ?? user.Email),
+                    new Claim(ClaimTypes.Email, user.Email)
+                }, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(identity));
+
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error syncing with main site", error = ex.Message });
+            }
+        }
+
+        // Check current authentication status
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            if (!User.Identity?.IsAuthenticated ?? true)
+            {
+                return Unauthorized();
             }
 
-            var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
-            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var displayName = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
-            var profilePictureUrl = claims?.FirstOrDefault(c => c.Type == "picture")?.Value;
-
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(email))
             {
-                var frontendUrl = HttpContext.RequestServices
-                    .GetRequiredService<IConfiguration>()["FrontendUrl"] ?? "http://localhost:5173";
-                return Redirect($"{frontendUrl}?error=email_missing");
-            }
-
-            if (!email.EndsWith("@byui.edu", StringComparison.OrdinalIgnoreCase))
-            {
-                // --- FIX ---
-                // If the domain is wrong, redirect to the frontend with a specific error message.
-                // This provides a much better user experience than a JSON error page.
-                var frontendUrl = HttpContext.RequestServices
-                    .GetRequiredService<IConfiguration>()["FrontendUrl"] ?? "http://localhost:5173";
-                return Redirect($"{frontendUrl}?error=invalid_domain");
+                return Unauthorized();
             }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
-                user = new User { Email = email, DisplayName = displayName, ProfilePictureUrl = profilePictureUrl };
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-            }
-            else
-            {
-                // Update existing user's profile picture URL if it has changed
-                if (user.ProfilePictureUrl != profilePictureUrl)
-                {
-                    user.ProfilePictureUrl = profilePictureUrl;
-                    await _context.SaveChangesAsync();
-                }
+                return Unauthorized();
             }
 
-            // Sign into our cookie scheme so subsequent API calls carry an auth cookie
-            var identity = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name, user.DisplayName ?? user.Email),
-                new Claim(ClaimTypes.Email, user.Email)
-            }, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(identity));
-
-            var userJson = JsonSerializer.Serialize(user);
-            var encodedUser = System.Web.HttpUtility.UrlEncode(userJson);
-            var frontendUrlSuccess = HttpContext.RequestServices
-                .GetRequiredService<IConfiguration>()["FrontendUrl"] ?? "http://localhost:5173";
-            return Redirect($"{frontendUrlSuccess}?user={encodedUser}");
+            return Ok(user);
         }
 
         [HttpGet("signout")]

@@ -103,7 +103,7 @@ function LoginPage({ onLogin, error, setError }) {
                 color: '#666',
               }}
             >
-              Use your BYU-Idaho Google account to access the FTC-Store
+              You must be logged into ftcemp.byui.edu to access the FTC-Store
             </Typography>
 
             <Button
@@ -125,7 +125,7 @@ function LoginPage({ onLogin, error, setError }) {
                 fontWeight: '500',
               }}
             >
-              Sign In with Google
+              Continue
             </Button>
 
             <Divider sx={{ my: 3 }} />

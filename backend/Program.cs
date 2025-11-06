@@ -1,8 +1,6 @@
 // File: backend/Program.cs
 
-using Microsoft.AspNetCore.Authentication.Google; // Add this
-using Microsoft.AspNetCore.Authentication.Cookies; // Add this
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -30,84 +28,36 @@ builder.Services.AddDbContext<SnackTrackerContext>(options =>
 
 // --- Add services to the container. ---
 
-// --- UPDATED AUTHENTICATION CONFIGURATION ---
-builder.Services.AddAuthentication(options =>
-    {
-        // Use cookies for auth; do not auto-redirect to Google on API challenges
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    })
+// --- SIMPLE COOKIE AUTHENTICATION (uses main site's auth) ---
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.Cookie.Name = "SnackTracker.Auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.Path = "/";
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() 
+            ? CookieSecurePolicy.SameAsRequest 
+            : CookieSecurePolicy.Always;
 
-        if (builder.Environment.IsDevelopment())
-        {
-            // For localhost over HTTP, allow cookie without Secure and with Lax SameSite
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        }
-        else
-        {
-            // In production, use cross-site cookie only over HTTPS
-            options.Cookie.SameSite = SameSiteMode.None;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        }
-
-        // Avoid 302 redirects for APIs; return proper status codes
+        // Return 401 for API endpoints instead of redirecting
         options.Events = new CookieAuthenticationEvents
         {
             OnRedirectToLogin = context =>
             {
-                if (context.Request.Path.StartsWithSegments("/api"))
-                {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    return Task.CompletedTask;
-                }
-                context.Response.Redirect(context.RedirectUri);
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return Task.CompletedTask;
             },
             OnRedirectToAccessDenied = context =>
             {
-                if (context.Request.Path.StartsWithSegments("/api"))
-                {
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    return Task.CompletedTask;
-                }
-                context.Response.Redirect(context.RedirectUri);
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return Task.CompletedTask;
             }
         };
-    }) // Add cookie handling
-    .AddGoogle(options => // Add Google authentication
-    {
-        // These lines read the Client ID and Secret from the Secret Manager.
-        var clientId = builder.Configuration["Authentication:Google:ClientId"];
-        var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-
-        if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
-        {
-            throw new InvalidOperationException("Google authentication credentials are not configured.");
-        }
-
-        options.ClientId = clientId;
-        options.ClientSecret = clientSecret;
-        
-        // Set the callback path to match our controller route
-        options.CallbackPath = "/api/auth/google-callback";
-        
-        // Cookie configuration for reverse proxy scenarios
-        // Use SameSite=None for OAuth flow that involves Google redirects
-        options.CorrelationCookie.Path = "/";
-        options.CorrelationCookie.SameSite = SameSiteMode.None;
-        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-        
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-        options.ClaimActions.MapJsonKey("picture", "picture", "url");
     });
+
+// Add HttpClient for calling main site auth API
+builder.Services.AddHttpClient();
 
 
 builder.Services.AddControllers().AddJsonOptions(options =>

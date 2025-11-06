@@ -36,15 +36,40 @@ function App() {
   const [loginError, setLoginError] = useState('');
   const [cart, setCart] = useState([]);
 
-  const handleLogin = () => {
-    window.location.href = `${API_BASE_URL}/api/auth/signin-google`;
+  const handleLogin = async () => {
+    try {
+      // Sync with main site authentication
+      const response = await fetch(`${API_BASE_URL}/api/auth/sync-main-site`, {
+        method: 'POST',
+        credentials: 'include', // Important: send cookies from main site
+      });
+
+      if (!response.ok) {
+        // Not authenticated on main site - redirect there
+        window.location.href = 'https://ftcemp.byui.edu/auth/login';
+        return;
+      }
+
+      const userData = await response.json();
+      updateUser(userData);
+      setLoginError('');
+    } catch (error) {
+      setLoginError('An error occurred during authentication.');
+      console.error('Login error:', error);
+    }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE_URL}/api/auth/signout`, {
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     localStorage.removeItem('user');
     setUser(null);
     setCart([]);
-    window.location.href = `${API_BASE_URL}/api/auth/signout`;
   };
   
   const updateUser = (updatedUser) => {
@@ -53,25 +78,33 @@ function App() {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const userParam = params.get('user');
-    const errorParam = params.get('error');
-
-    if (userParam) {
+    // Check if user is already authenticated
+    const checkAuth = async () => {
       try {
-        const userData = JSON.parse(decodeURIComponent(userParam));
-        updateUser(userData);
-        window.history.replaceState({}, document.title, "/");
-      } catch (error) {
-        setLoginError("An unexpected error occurred during login.");
-      }
-    } else if (errorParam) {
-        if (errorParam === 'invalid_domain') {
-            setLoginError('Access Denied: Only byui.edu accounts are allowed.');
+        // First, try to sync with main site
+        const response = await fetch(`${API_BASE_URL}/api/auth/sync-main-site`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          updateUser(userData);
         } else {
-            setLoginError('An error occurred during authentication.');
+          // Not authenticated on main site or sync failed
+          localStorage.removeItem('user');
+          setUser(null);
         }
-        window.history.replaceState({}, document.title, "/");
+      } catch (error) {
+        console.error('Auth check error:', error);
+        localStorage.removeItem('user');
+        setUser(null);
+      }
+    };
+
+    // Only check auth if we don't already have user
+    if (!user) {
+      checkAuth();
     }
   }, []);
 
