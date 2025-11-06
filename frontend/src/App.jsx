@@ -28,10 +28,8 @@ const customTheme = createTheme({
 });
 
 function App() {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  // Don't initialize from localStorage - always sync with main site
+  const [user, setUser] = useState(null);
   
   const [loginError, setLoginError] = useState('');
   const [cart, setCart] = useState([]);
@@ -102,10 +100,8 @@ function App() {
       }
     };
 
-    // Only check auth if we don't already have user
-    if (!user) {
-      checkAuth();
-    }
+    // Always check auth on mount to get fresh data from main site
+    checkAuth();
   }, []);
 
 
