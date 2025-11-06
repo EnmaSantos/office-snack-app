@@ -63,6 +63,8 @@ builder.Services.AddHttpClient();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    // Use PascalCase for JSON to match frontend expectations
+    options.JsonSerializerOptions.PropertyNamingPolicy = null;
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
