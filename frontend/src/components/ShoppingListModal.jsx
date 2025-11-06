@@ -71,15 +71,15 @@ function ShoppingListModal({ open, onClose, user }) {
       const data = await response.json();
       // Sort items by stock level (lowest to highest)
       const sortedItems = data
-        .filter(item => item.isAvailable) // Only show available items
-        .sort((a, b) => a.stock - b.stock)
+        .filter(item => item.IsAvailable) // Only show available items
+        .sort((a, b) => a.Stock - b.Stock)
         .map(item => ({
-          snackId: item.snackId,
-          name: item.name,
-          stock: item.stock,
-          price: item.price,
-          imageUrl: item.imageUrl,
-          suggestedQuantity: Math.max(1, 10 - item.stock) // Suggest quantity to reach 10 stock
+          SnackId: item.SnackId,
+          Name: item.Name,
+          Stock: item.Stock,
+          Price: item.Price,
+          ImageUrl: item.ImageUrl,
+          SuggestedQuantity: Math.max(1, 10 - item.Stock) // Suggest quantity to reach 10 stock
         }));
       
       setAllItems(sortedItems);
@@ -101,7 +101,7 @@ function ShoppingListModal({ open, onClose, user }) {
         throw new Error('Failed to fetch snack requests');
       }
       const data = await response.json();
-      setSnackRequests(data.filter(req => req.status === 'Pending'));
+      setSnackRequests(data.filter(req => req.Status === 'Pending'));
     } catch (err) {
       setError(err.message);
     }
@@ -109,16 +109,16 @@ function ShoppingListModal({ open, onClose, user }) {
 
   const handleItemToggle = (item) => {
     setSelectedItems(prev => {
-      const exists = prev.find(selected => selected.snackId === item.snackId);
+      const exists = prev.find(selected => selected.SnackId === item.SnackId);
       if (exists) {
-        return prev.filter(selected => selected.snackId !== item.snackId);
+        return prev.filter(selected => selected.SnackId !== item.SnackId);
       } else {
         return [...prev, {
-          name: item.name,
-          quantity: item.suggestedQuantity,
-          isExistingSnack: true,
-          snackId: item.snackId,
-          notes: `Current stock: ${item.stock}`
+          Name: item.Name,
+          Quantity: item.SuggestedQuantity,
+          IsExistingSnack: true,
+          SnackId: item.SnackId,
+          Notes: `Current stock: ${item.Stock}`
         }];
       }
     });
@@ -127,8 +127,8 @@ function ShoppingListModal({ open, onClose, user }) {
   const handleQuantityChange = (snackId, quantity) => {
     setSelectedItems(prev =>
       prev.map(item =>
-        item.snackId === snackId
-          ? { ...item, quantity: Math.max(1, parseInt(quantity) || 1) }
+        item.SnackId === snackId
+          ? { ...item, Quantity: Math.max(1, parseInt(quantity) || 1) }
           : item
       )
     );
@@ -138,11 +138,11 @@ function ShoppingListModal({ open, onClose, user }) {
     if (!newItemName.trim()) return;
 
     const newItem = {
-      name: newItemName.trim(),
-      quantity: Math.max(1, newItemQuantity),
-      isExistingSnack: false,
-      snackId: null,
-      notes: newItemNotes.trim() || undefined
+      Name: newItemName.trim(),
+      Quantity: Math.max(1, newItemQuantity),
+      IsExistingSnack: false,
+      SnackId: null,
+      Notes: newItemNotes.trim() || undefined
     };
 
     setManualItems(prev => [...prev, newItem]);
@@ -173,7 +173,7 @@ function ShoppingListModal({ open, onClose, user }) {
           'Content-Type': 'application/json',
           'X-User-Id': user.UserId,
         },
-        body: JSON.stringify({ items: allItems }),
+        body: JSON.stringify({ Items: allItems }),
       });
 
       if (!response.ok) {
@@ -218,7 +218,7 @@ function ShoppingListModal({ open, onClose, user }) {
   };
 
   const totalItems = selectedItems.length + manualItems.length;
-  const totalQuantity = [...selectedItems, ...manualItems].reduce((sum, item) => sum + item.quantity, 0);
+  const totalQuantity = [...selectedItems, ...manualItems].reduce((sum, item) => sum + item.Quantity, 0);
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -265,11 +265,11 @@ function ShoppingListModal({ open, onClose, user }) {
             ) : (
               <Grid container spacing={2}>
                 {allItems.map((item) => {
-                  const isSelected = selectedItems.some(selected => selected.snackId === item.snackId);
-                  const selectedItem = selectedItems.find(selected => selected.snackId === item.snackId);
+                  const isSelected = selectedItems.some(selected => selected.SnackId === item.SnackId);
+                  const selectedItem = selectedItems.find(selected => selected.SnackId === item.SnackId);
                   
                   return (
-                    <Grid item xs={12} sm={6} key={item.snackId}>
+                    <Grid item xs={12} sm={6} key={item.SnackId}>
                       <Card variant={isSelected ? "outlined" : "elevation"} 
                             sx={{ 
                               bgcolor: isSelected ? 'action.selected' : 'background.paper',
@@ -285,21 +285,21 @@ function ShoppingListModal({ open, onClose, user }) {
                             />
                             <Box sx={{ flex: 1 }}>
                               <Typography variant="subtitle1" fontWeight="medium">
-                                {item.name}
+                                {item.Name}
                               </Typography>
                               <Typography variant="body2" color="text.secondary">
-                                Current stock: {item.stock}
+                                Current stock: {item.Stock}
                               </Typography>
                               <Typography variant="body2" color="warning.main">
-                                Suggested quantity: {item.suggestedQuantity}
+                                Suggested quantity: {item.SuggestedQuantity}
                               </Typography>
                               {isSelected && (
                                 <TextField
                                   size="small"
                                   type="number"
                                   label="Quantity"
-                                  value={selectedItem.quantity}
-                                  onChange={(e) => handleQuantityChange(item.snackId, e.target.value)}
+                                  value={selectedItem.Quantity}
+                                  onChange={(e) => handleQuantityChange(item.SnackId, e.target.value)}
                                   onClick={(e) => e.stopPropagation()}
                                   sx={{ mt: 1, width: 100 }}
                                   inputProps={{ min: 1 }}
@@ -331,15 +331,15 @@ function ShoppingListModal({ open, onClose, user }) {
             ) : (
               <List>
                 {snackRequests.map(request => (
-                  <ListItem key={request.id}>
+                  <ListItem key={request.Id}>
                     <ListItemText
-                      primary={request.snackName}
-                      secondary={`Requested by ${request.requestedByUser?.displayName}`}
+                      primary={request.SnackName}
+                      secondary={`Requested by ${request.RequestedByUser?.DisplayName}`}
                     />
                     <Button
                       variant="outlined"
                       onClick={() => {
-                        setNewItemName(request.snackName);
+                        setNewItemName(request.SnackName);
                         setCurrentTab(2); // Switch to Manual Items tab
                       }}
                     >
@@ -422,15 +422,15 @@ function ShoppingListModal({ open, onClose, user }) {
                       <React.Fragment key={index}>
                         <ListItem>
                           <ListItemText
-                            primary={item.name}
+                            primary={item.Name}
                             secondary={
                               <span>
                                 <span style={{ display: 'block' }}>
-                                  Quantity: {item.quantity}
+                                  Quantity: {item.Quantity}
                                 </span>
-                                {item.notes && (
+                                {item.Notes && (
                                   <span style={{ display: 'block', color: 'rgba(0, 0, 0, 0.6)' }}>
-                                    Notes: {item.notes}
+                                    Notes: {item.Notes}
                                   </span>
                                 )}
                               </span>
@@ -483,8 +483,8 @@ function ShoppingListModal({ open, onClose, user }) {
                             <ListItemText
                               primary={
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  {item.name}
-                                  {item.isExistingSnack && (
+                                  {item.Name}
+                                  {item.IsExistingSnack && (
                                     <Chip size="small" label="Store Item" color="primary" />
                                   )}
                                 </span>
@@ -492,11 +492,11 @@ function ShoppingListModal({ open, onClose, user }) {
                               secondary={
                                 <span>
                                   <span style={{ display: 'block' }}>
-                                    Quantity: {item.quantity}
+                                    Quantity: {item.Quantity}
                                   </span>
-                                  {item.notes && (
+                                  {item.Notes && (
                                     <span style={{ display: 'block', color: 'rgba(0, 0, 0, 0.6)' }}>
-                                      Notes: {item.notes}
+                                      Notes: {item.Notes}
                                     </span>
                                   )}
                                 </span>
