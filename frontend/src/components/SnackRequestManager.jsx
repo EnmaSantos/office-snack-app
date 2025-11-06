@@ -46,12 +46,12 @@ function SnackRequestManager({ user }) {
   }, []);
 
   const handleUpdateStatus = async (id, newStatus) => {
-    const requestToUpdate = requests.find(r => r.id === id);
+    const requestToUpdate = requests.find(r => r.Id === id);
     if (!requestToUpdate) return;
 
-    const originalStatus = requestToUpdate.status;
-    const updatedRequest = { ...requestToUpdate, status: newStatus };
-    setRequests(requests.map(r => r.id === id ? updatedRequest : r));
+    const originalStatus = requestToUpdate.Status;
+    const updatedRequest = { ...requestToUpdate, Status: newStatus };
+    setRequests(requests.map(r => r.Id === id ? updatedRequest : r));
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/snackrequests/${id}`, {
@@ -67,13 +67,13 @@ function SnackRequestManager({ user }) {
       }
     } catch (err) {
       setError(err.message);
-      setRequests(requests.map(r => r.id === id ? { ...r, status: originalStatus } : r));
+      setRequests(requests.map(r => r.Id === id ? { ...r, Status: originalStatus } : r));
     }
   };
 
   const handleDelete = async (id) => {
     const originalRequests = requests;
-    setRequests(requests.filter(r => r.id !== id));
+    setRequests(requests.filter(r => r.Id !== id));
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/snackrequests/${id}`, {
@@ -103,22 +103,22 @@ function SnackRequestManager({ user }) {
     <Box>
       <List>
         {requests.map(request => (
-          <ListItem key={request.id} divider>
+          <ListItem key={request.Id} divider>
             <ListItemText
-              primary={request.snackName}
-              secondary={`Requested by ${request.requestedByUser?.displayName || 'Unknown'} · ${formatDistanceToNow(new Date(request.requestDate), { addSuffix: true })}`}
+              primary={request.SnackName}
+              secondary={`Requested by ${request.RequestedByUser?.DisplayName || 'Unknown'} · ${formatDistanceToNow(new Date(request.RequestDate), { addSuffix: true })}`}
             />
             <Chip
-              label={request.status}
-              color={request.status === 'Pending' ? 'warning' : 'success'}
+              label={request.Status}
+              color={request.Status === 'Pending' ? 'warning' : 'success'}
               size="small"
               sx={{ mx: 2 }}
             />
             <Tooltip title="Mark as Purchased">
               <span>
                 <IconButton
-                  onClick={() => handleUpdateStatus(request.id, 'Purchased')}
-                  disabled={request.status === 'Purchased'}
+                  onClick={() => handleUpdateStatus(request.Id, 'Purchased')}
+                  disabled={request.Status === 'Purchased'}
                   color="success"
                 >
                   <CheckCircleOutline />
@@ -128,8 +128,8 @@ function SnackRequestManager({ user }) {
             <Tooltip title="Mark as Pending">
               <span>
                 <IconButton
-                  onClick={() => handleUpdateStatus(request.id, 'Pending')}
-                  disabled={request.status === 'Pending'}
+                  onClick={() => handleUpdateStatus(request.Id, 'Pending')}
+                  disabled={request.Status === 'Pending'}
                   color="warning"
                 >
                   <HourglassEmpty />
@@ -137,7 +137,7 @@ function SnackRequestManager({ user }) {
               </span>
             </Tooltip>
             <Tooltip title="Delete Request">
-              <IconButton onClick={() => handleDelete(request.id)} color="error">
+              <IconButton onClick={() => handleDelete(request.Id)} color="error">
                 <DeleteOutline />
               </IconButton>
             </Tooltip>
