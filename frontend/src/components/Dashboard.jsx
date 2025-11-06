@@ -386,6 +386,9 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
       <Card 
         sx={{ 
           mb: 3,
+          position: 'sticky',
+          top: 0,
+          zIndex: 1000,
           background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
           border: '1px solid rgba(0, 110, 182, 0.1)',
           boxShadow: '0 4px 20px rgba(0, 110, 182, 0.1)',
