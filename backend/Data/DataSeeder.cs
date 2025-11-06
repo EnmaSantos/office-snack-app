@@ -23,8 +23,8 @@ namespace SnackTracker.Api.Data
                 // This will only apply new migrations, not recreate existing data
                 context.Database.Migrate();
 
-                // Only seed default snacks on first run in development (do not modify existing data)
-                if (env.IsDevelopment() && !context.Snacks.Any())
+                // Seed default snacks on first run (do not modify existing data)
+                if (!context.Snacks.Any())
                 {
                     var desiredSnacks = new List<Snack>
                     {
@@ -51,11 +51,7 @@ namespace SnackTracker.Api.Data
                     context.Snacks.AddRange(desiredSnacks);
                 }
 
-                // Only seed a test user in development on first run
-                if (env.IsDevelopment() && !context.Users.Any())
-                {
-                    context.Users.Add(new User { Email = "test.user@byui.edu", DisplayName = "Test User", Balance = 5.00M });
-                }
+                // Note: Users are created automatically when they log in via main site auth
 
                 // Save any changes we might have made.
                 context.SaveChanges();
