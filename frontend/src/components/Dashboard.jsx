@@ -427,7 +427,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                   fontWeight: '600',
                   mb: 0.5
                 }}>
-                  Welcome, {user.DisplayName}!
+                  Welcome back, {user.DisplayName}!
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Typography variant="body1" sx={{ color: '#666' }}>
