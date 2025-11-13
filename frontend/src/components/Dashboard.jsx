@@ -10,7 +10,7 @@ import Profile from './Profile';
 import SnackRequestForm from './SnackRequestForm';
 import { API_BASE_URL } from '../config';
 
-function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
+function Dashboard({ user, onGoHome, updateUser, cart, setCart }) {
   const [snacks, setSnacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -276,7 +276,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                 </Button>
                 <Button 
                   variant="outlined" 
-                  onClick={onLogout}
+                  onClick={onGoHome}
                   sx={{ 
                     borderColor: '#006EB6',
                     color: '#006EB6',
@@ -290,7 +290,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                     fontWeight: '500'
                   }}
                 >
-                  Logout
+                  Go Back to Home
                 </Button>
               </Box>
             </Box>
@@ -355,7 +355,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                 </Button>
                 <Button 
                   variant="outlined" 
-                  onClick={onLogout}
+                  onClick={onGoHome}
                   sx={{ 
                     borderColor: '#006EB6',
                     color: '#006EB6',
@@ -369,7 +369,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                     fontWeight: '500'
                   }}
                 >
-                  Logout
+                  Go Back to Home
                 </Button>
               </Box>
             </Box>
@@ -563,7 +563,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                 </IconButton>
                 <Button 
                   variant="outlined" 
-                  onClick={onLogout}
+                  onClick={onGoHome}
                   sx={{ 
                     borderColor: '#006EB6',
                     color: '#006EB6',
@@ -577,7 +577,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                     fontWeight: '500'
                   }}
                 >
-                  Logout
+                  Go Back to Home
                 </Button>
               </Box>
             </Box>

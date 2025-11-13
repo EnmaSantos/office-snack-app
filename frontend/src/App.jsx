@@ -57,17 +57,9 @@ function App() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch(`${API_BASE_URL}/api/auth/signout`, {
-        credentials: 'include',
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-    localStorage.removeItem('user');
-    setUser(null);
-    setCart([]);
+  const handleGoHome = () => {
+    // Redirect back to the main FTEC employee website
+    window.location.href = 'https://ftcemp.byui.edu';
   };
   
   const updateUser = (updatedUser) => {
@@ -160,7 +152,7 @@ function App() {
           <Container component="main" maxWidth="lg">
             <Dashboard 
               user={user} 
-              onLogout={handleLogout} 
+              onGoHome={handleGoHome} 
               updateUser={updateUser} 
               cart={cart}
               setCart={setCart}
