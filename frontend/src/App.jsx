@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dashboard from './components/Dashboard';
-import { API_BASE_URL } from './config';
+import { API_BASE_URL, FRONTEND_URL } from './config';
 
 const customTheme = createTheme({
   palette: {
@@ -58,13 +58,13 @@ function App() {
           updateUser(userData);
           setLoading(false);
         } else {
-          // Not authenticated on main site - redirect to login
-          window.location.href = 'https://ftcemp.byui.edu/auth/login';
+          // Not authenticated on main site - redirect to login with return URL
+          window.location.href = `https://ftcemp.byui.edu/auth/login?returnUrl=${encodeURIComponent(FRONTEND_URL)}`;
         }
       } catch (error) {
         console.error('Auth check error:', error);
-        // On error, redirect to login
-        window.location.href = 'https://ftcemp.byui.edu/auth/login';
+        // On error, redirect to login with return URL
+        window.location.href = `https://ftcemp.byui.edu/auth/login?returnUrl=${encodeURIComponent(FRONTEND_URL)}`;
       }
     };
 
