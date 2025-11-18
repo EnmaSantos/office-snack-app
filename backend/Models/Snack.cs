@@ -27,5 +27,8 @@ namespace SnackTracker.Api.Models
         // The URL for the snack's image. This is nullable ('string?'),
         // so it's an optional field.
         public string? ImageUrl { get; set; }
+
+        // Navigation property for the batches of this snack
+        public ICollection<SnackBatch> Batches { get; set; } = new List<SnackBatch>();
     }
 }

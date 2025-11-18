@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SnackTracker.Api.Data;
+using SnackTracker.Api.Services;
 using System.Text.Json.Serialization;
 
 // Load environment variables from .env if present (for local/dev)
@@ -25,6 +26,9 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     $"Data Source={Path.Combine(builder.Environment.ContentRootPath, "SnackTracker.db")}";
 builder.Services.AddDbContext<SnackTrackerContext>(options =>
     options.UseSqlite(connectionString));
+
+// Register Inventory Service
+builder.Services.AddScoped<InventoryService>();
 
 // --- Add services to the container. ---
 
