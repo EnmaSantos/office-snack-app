@@ -139,7 +139,10 @@ namespace SnackTracker.Api.Controllers
             await _inventoryService.AddBatchAsync(newSnack.SnackId, request.InitialStock, request.TotalCost);
             
             // Refresh the snack entity to get updated values
-            var updatedSnack = await _context.Snacks.FindAsync(newSnack.SnackId);
+            // Use AsNoTracking() to bypass the cache and get the fresh data from DB
+            var updatedSnack = await _context.Snacks
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.SnackId == newSnack.SnackId);
 
             // Return the newly created snack
             return CreatedAtAction(nameof(GetSnackById), new { id = updatedSnack.SnackId }, updatedSnack);
