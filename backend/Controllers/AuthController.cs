@@ -148,7 +148,7 @@ namespace SnackTracker.Api.Controllers
         }
 
         [HttpGet("signout")]
-        public async Task<IActionResult> SignOut()
+        public new async Task<IActionResult> SignOut()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             var frontendUrl = HttpContext.RequestServices
