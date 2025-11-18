@@ -118,8 +118,10 @@ function Dashboard({ user, onGoHome, updateUser, cart, setCart }) {
   };
 
   useEffect(() => {
-    fetchSnacks();
-  }, []);
+    if (view === 'dashboard') {
+      fetchSnacks();
+    }
+  }, [view]);
 
   // --- Animation Effect ---
   useEffect(() => {
