@@ -6,7 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import LoginPage from './components/LoginPage';
+import CircularProgress from '@mui/material/CircularProgress';
 import Dashboard from './components/Dashboard';
 import { API_BASE_URL } from './config';
 
@@ -28,23 +28,14 @@ const customTheme = createTheme({
 });
 
 function App() {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-  
-  const [loginError, setLoginError] = useState('');
+  // Don't initialize from localStorage - always sync with main site
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState([]);
 
-  const handleLogin = () => {
-    window.location.href = `${API_BASE_URL}/api/auth/signin-google`;
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setUser(null);
-    setCart([]);
-    window.location.href = `${API_BASE_URL}/api/auth/signout`;
+  const handleGoHome = () => {
+    // Redirect back to the main FTEC employee website
+    window.location.href = 'https://ftcemp.byui.edu';
   };
   
   const updateUser = (updatedUser) => {
@@ -53,33 +44,55 @@ function App() {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const userParam = params.get('user');
-    const errorParam = params.get('error');
-
-    if (userParam) {
+    // Check if user is already authenticated
+    const checkAuth = async () => {
       try {
-        const userData = JSON.parse(decodeURIComponent(userParam));
-        updateUser(userData);
-        window.history.replaceState({}, document.title, "/");
-      } catch (error) {
-        setLoginError("An unexpected error occurred during login.");
-      }
-    } else if (errorParam) {
-        if (errorParam === 'invalid_domain') {
-            setLoginError('Access Denied: Only byui.edu accounts are allowed.');
+        // Try to sync with main site
+        const response = await fetch(`${API_BASE_URL}/api/auth/sync-main-site`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          updateUser(userData);
+          setLoading(false);
         } else {
-            setLoginError('An error occurred during authentication.');
+          // Not authenticated on main site - redirect to login
+          window.location.href = 'https://ftcemp.byui.edu/auth/login';
         }
-        window.history.replaceState({}, document.title, "/");
-    }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        // On error, redirect to login
+        window.location.href = 'https://ftcemp.byui.edu/auth/login';
+      }
+    };
+
+    // Always check auth on mount to get fresh data from main site
+    checkAuth();
   }, []);
 
 
   return (
     <ThemeProvider theme={customTheme}>
       <CssBaseline />
-      {user ? (
+      {loading ? (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+            gap: 2,
+          }}
+        >
+          <CircularProgress size={60} />
+          <Typography variant="h6" color="text.secondary">
+            Checking authentication...
+          </Typography>
+        </Box>
+      ) : (
         <Box>
           {/* BYU-Idaho Header */}
           <Box
@@ -131,15 +144,13 @@ function App() {
           <Container component="main" maxWidth="lg">
             <Dashboard 
               user={user} 
-              onLogout={handleLogout} 
+              onGoHome={handleGoHome} 
               updateUser={updateUser} 
               cart={cart}
               setCart={setCart}
             />
           </Container>
         </Box>
-      ) : (
-        <LoginPage onLogin={handleLogin} error={loginError} setError={setLoginError} />
       )}
     </ThemeProvider>
   );

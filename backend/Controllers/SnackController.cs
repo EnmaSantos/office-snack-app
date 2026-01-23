@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SnackTracker.Api.Data;
 using SnackTracker.Api.Models;
+using SnackTracker.Api.Services;
 
 namespace SnackTracker.Api.Controllers
 {
@@ -12,10 +13,12 @@ namespace SnackTracker.Api.Controllers
     public class SnacksController : ControllerBase
     {
         private readonly SnackTrackerContext _context;
+        private readonly InventoryService _inventoryService;
 
-        public SnacksController(SnackTrackerContext context)
+        public SnacksController(SnackTrackerContext context, InventoryService inventoryService)
         {
             _context = context;
+            _inventoryService = inventoryService;
         }
 
         // GET: api/snacks
@@ -30,9 +33,13 @@ namespace SnackTracker.Api.Controllers
         }
 
         // This endpoint is now replaced by the /checkout endpoint for cart functionality.
-        // We can keep it for single-item purchases if we want, or remove it.
         [HttpPost("purchase")]
         public async Task<IActionResult> PurchaseSnack([FromBody] PurchaseRequest request)
+        {
+            // Start a transaction to ensure consistency between stock consumption and balance update
+            using var dbTransaction = await _context.Database.BeginTransactionAsync();
+
+            try
         {
             var user = await _context.Users.FindAsync(request.UserId);
             var snack = await _context.Snacks.FindAsync(request.SnackId);
@@ -47,9 +54,13 @@ namespace SnackTracker.Api.Controllers
                 return BadRequest(new { message = "Sorry, this snack is out of stock." });
             }
 
+                // 1. Deduct Balance
             user.Balance -= snack.Price;
-            snack.Stock -= 1;
 
+                // 2. Consume Stock (Updates Inventory and Price)
+                await _inventoryService.ConsumeStockAsync(snack.SnackId, 1);
+
+                // 3. Record Transaction
             var transaction = new Transaction
             {
                 UserId = user.UserId,
@@ -60,11 +71,18 @@ namespace SnackTracker.Api.Controllers
 
             _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
+                await dbTransaction.CommitAsync();
 
             return Ok(new { message = "Purchase successful!", newBalance = user.Balance });
         }
+            catch (Exception ex)
+            {
+                await dbTransaction.RollbackAsync();
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
-        // --- NEW CHECKOUT ENDPOINT ---
+        // --- CHECKOUT ENDPOINT ---
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
         {
@@ -97,28 +115,27 @@ namespace SnackTracker.Api.Controllers
                     totalCost += snack.Price;
                 }
 
-                // Allow negative balances - users can "owe" money
-                // if (user.Balance < totalCost)
-                // {
-                //     return BadRequest(new { message = "Insufficient funds for this purchase." });
-                // }
-
                 // All checks passed. Now, execute the changes.
                 user.Balance -= totalCost;
 
+                // Process each item
                 foreach (var snackId in request.SnackIds)
                 {
                     var snack = snacksInCart.First(s => s.SnackId == snackId);
-                    snack.Stock -= 1; // Decrement stock
 
+                    // Record transaction using current price
                     var purchaseTransaction = new Transaction
                     {
                         UserId = user.UserId,
                         SnackId = snack.SnackId,
-                        TransactionAmount = -snack.Price, // Negative for purchases
+                        TransactionAmount = -snack.Price, 
                         Timestamp = DateTime.UtcNow
                     };
                     _context.Transactions.Add(purchaseTransaction);
+
+                    // Consume stock (this updates the Batch and recalculates Price for NEXT time)
+                    // We await this sequentially to ensure strict ordering of batch consumption
+                    await _inventoryService.ConsumeStockAsync(snackId, 1);
                 }
 
                 await _context.SaveChangesAsync();
@@ -126,10 +143,25 @@ namespace SnackTracker.Api.Controllers
 
                 return Ok(new { message = "Checkout successful!", newBalance = user.Balance });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await dbTransaction.RollbackAsync(); // Undo all changes if anything fails
-                return StatusCode(500, new { message = "An unexpected error occurred. The transaction has been rolled back." });
+                return StatusCode(500, new { message = "An error occurred during checkout: " + ex.Message });
+            }
+        }
+
+        // --- NEW RESTOCK ENDPOINT ---
+        [HttpPost("{id}/restock")]
+        public async Task<IActionResult> RestockSnack(int id, [FromBody] RestockRequest request)
+        {
+            try
+            {
+                await _inventoryService.AddBatchAsync(id, request.Quantity, request.TotalCost);
+                return Ok(new { message = "Restock successful. Price updated." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
     }

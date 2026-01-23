@@ -12,6 +12,7 @@ frontend/node_modules/
 # Build results
 [Bb]in/
 [Oo]bj/
+backend/publish/
 
 # Rider files
 .idea/
@@ -29,3 +30,4 @@ frontend/node_modules/
 *.db-shm
 *.db-wal
 backend/SnackTracker.db
+**/.env.production

@@ -1,11 +1,11 @@
 // File: backend/Program.cs
 
-using Microsoft.AspNetCore.Authentication.Google; // Add this
-using Microsoft.AspNetCore.Authentication.Cookies; // Add this
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SnackTracker.Api.Data;
+using SnackTracker.Api.Services;
 using System.Text.Json.Serialization;
 
 // Load environment variables from .env if present (for local/dev)
@@ -13,86 +13,62 @@ DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure forwarded headers for proxy support
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost | ForwardedHeaders.XForwardedPrefix;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 // --- Database Configuration ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
     $"Data Source={Path.Combine(builder.Environment.ContentRootPath, "SnackTracker.db")}";
 builder.Services.AddDbContext<SnackTrackerContext>(options =>
     options.UseSqlite(connectionString));
 
+// Register Inventory Service
+builder.Services.AddScoped<InventoryService>();
+
 // --- Add services to the container. ---
 
-// --- UPDATED AUTHENTICATION CONFIGURATION ---
-builder.Services.AddAuthentication(options =>
-    {
-        // Use cookies for auth; do not auto-redirect to Google on API challenges
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    })
+// --- SIMPLE COOKIE AUTHENTICATION (uses main site's auth) ---
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.Cookie.Name = "SnackTracker.Auth";
         options.Cookie.HttpOnly = true;
+        options.Cookie.Path = "/";
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() 
+            ? CookieSecurePolicy.SameAsRequest 
+            : CookieSecurePolicy.Always;
 
-        if (builder.Environment.IsDevelopment())
-        {
-            // For localhost over HTTP, allow cookie without Secure and with Lax SameSite
-            options.Cookie.SameSite = SameSiteMode.Lax;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        }
-        else
-        {
-            // In production, use cross-site cookie only over HTTPS
-            options.Cookie.SameSite = SameSiteMode.None;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        }
-
-        // Avoid 302 redirects for APIs; return proper status codes
+        // Return 401 for API endpoints instead of redirecting
         options.Events = new CookieAuthenticationEvents
         {
             OnRedirectToLogin = context =>
             {
-                if (context.Request.Path.StartsWithSegments("/api"))
-                {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    return Task.CompletedTask;
-                }
-                context.Response.Redirect(context.RedirectUri);
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return Task.CompletedTask;
             },
             OnRedirectToAccessDenied = context =>
             {
-                if (context.Request.Path.StartsWithSegments("/api"))
-                {
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    return Task.CompletedTask;
-                }
-                context.Response.Redirect(context.RedirectUri);
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return Task.CompletedTask;
             }
         };
-    }) // Add cookie handling
-    .AddGoogle(options => // Add Google authentication
-    {
-        // These lines read the Client ID and Secret from the Secret Manager.
-        var clientId = builder.Configuration["Authentication:Google:ClientId"];
-        var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-
-        if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
-        {
-            throw new InvalidOperationException("Google authentication credentials are not configured.");
-        }
-
-        options.ClientId = clientId;
-        options.ClientSecret = clientSecret;
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-        options.ClaimActions.MapJsonKey("picture", "picture", "url");
     });
+
+// Add HttpClient for calling main site auth API
+builder.Services.AddHttpClient();
 
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    // Use PascalCase for JSON to match frontend expectations
+    options.JsonSerializerOptions.PropertyNamingPolicy = null;
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -139,6 +115,10 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Use forwarded headers from proxy (Nginx)
+// This processes X-Forwarded-Prefix header set by nginx
+app.UseForwardedHeaders();
 
 app.SeedDatabase();
 

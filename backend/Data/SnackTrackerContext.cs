@@ -27,5 +27,8 @@ namespace SnackTracker.Api.Data
 
         // This will create a 'SnackRequests' table from our 'SnackRequest' model.
         public DbSet<SnackRequest> SnackRequests { get; set; }
+
+        // This will create a 'SnackBatches' table to track inventory batches.
+        public DbSet<SnackBatch> SnackBatches { get; set; }
     }
 }

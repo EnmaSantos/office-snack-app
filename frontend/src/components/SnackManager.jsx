@@ -2,14 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, CircularProgress, Typography } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddBoxIcon from '@mui/icons-material/AddBox';
 import SnackForm from './SnackForm';
+import RestockModal from './RestockModal';
 import { API_BASE_URL } from '../config';
 
 function SnackManager({ user }) {
   const [snacks, setSnacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
+  const [restockOpen, setRestockOpen] = useState(false);
   const [editingSnack, setEditingSnack] = useState(null);
+  const [restockingSnack, setRestockingSnack] = useState(null);
 
   // Function to fetch all snacks (we can reuse this to refresh the list)
   const fetchSnacks = async () => {
@@ -41,6 +45,16 @@ function SnackManager({ user }) {
   const handleCloseForm = () => {
     setFormOpen(false);
     setEditingSnack(null);
+  };
+
+  const handleOpenRestock = (snack) => {
+    setRestockingSnack(snack);
+    setRestockOpen(true);
+  };
+
+  const handleCloseRestock = () => {
+    setRestockOpen(false);
+    setRestockingSnack(null);
   };
 
   const handleDelete = async (snackId) => {
@@ -80,8 +94,11 @@ function SnackManager({ user }) {
                 <TableCell align="right">${snack.Price?.toFixed ? snack.Price.toFixed(2) : Number(snack.Price || 0).toFixed(2)}</TableCell>
                 <TableCell align="right">{snack.Stock}</TableCell>
                 <TableCell align="center">
-                  <IconButton onClick={() => handleOpenForm(snack)}><EditIcon /></IconButton>
-                  <IconButton onClick={() => handleDelete(snack.SnackId ?? snack.snackId)}><DeleteIcon color="error" /></IconButton>
+                  <IconButton onClick={() => handleOpenRestock(snack)} title="Restock / Add Inventory">
+                    <AddBoxIcon color="primary" />
+                  </IconButton>
+                  <IconButton onClick={() => handleOpenForm(snack)} title="Edit Details"><EditIcon /></IconButton>
+                  <IconButton onClick={() => handleDelete(snack.SnackId ?? snack.snackId)} title="Delete"><DeleteIcon color="error" /></IconButton>
                 </TableCell>
               </TableRow>
             ))}
@@ -92,6 +109,13 @@ function SnackManager({ user }) {
         open={formOpen}
         onClose={handleCloseForm}
         snack={editingSnack}
+        user={user}
+        refreshSnacks={fetchSnacks}
+      />
+      <RestockModal
+        open={restockOpen}
+        onClose={handleCloseRestock}
+        snack={restockingSnack}
         user={user}
         refreshSnacks={fetchSnacks}
       />

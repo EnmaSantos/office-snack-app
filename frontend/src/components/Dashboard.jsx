@@ -10,7 +10,7 @@ import Profile from './Profile';
 import SnackRequestForm from './SnackRequestForm';
 import { API_BASE_URL } from '../config';
 
-function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
+function Dashboard({ user, onGoHome, updateUser, cart, setCart }) {
   const [snacks, setSnacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -118,8 +118,10 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
   };
 
   useEffect(() => {
+    if (view === 'dashboard') {
     fetchSnacks();
-  }, []);
+    }
+  }, [view]);
 
   // --- Animation Effect ---
   useEffect(() => {
@@ -276,7 +278,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                 </Button>
                 <Button 
                   variant="outlined" 
-                  onClick={onLogout}
+                  onClick={onGoHome}
                   sx={{ 
                     borderColor: '#006EB6',
                     color: '#006EB6',
@@ -290,7 +292,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                     fontWeight: '500'
                   }}
                 >
-                  Logout
+                  Go Back to Home
                 </Button>
               </Box>
             </Box>
@@ -355,7 +357,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                 </Button>
                 <Button 
                   variant="outlined" 
-                  onClick={onLogout}
+                  onClick={onGoHome}
                   sx={{ 
                     borderColor: '#006EB6',
                     color: '#006EB6',
@@ -369,7 +371,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                     fontWeight: '500'
                   }}
                 >
-                  Logout
+                  Go Back to Home
                 </Button>
               </Box>
             </Box>
@@ -386,6 +388,9 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
       <Card 
         sx={{ 
           mb: 3,
+          position: 'sticky',
+          top: 0,
+          zIndex: 1000,
           background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
           border: '1px solid rgba(0, 110, 182, 0.1)',
           boxShadow: '0 4px 20px rgba(0, 110, 182, 0.1)',
@@ -424,7 +429,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                   fontWeight: '600',
                   mb: 0.5
                 }}>
-                  Welcome, {user.DisplayName}!
+                  Welcome back, {user.DisplayName}!
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Typography variant="body1" sx={{ color: '#666' }}>
@@ -560,7 +565,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                 </IconButton>
                 <Button 
                   variant="outlined" 
-                  onClick={onLogout}
+                  onClick={onGoHome}
                   sx={{ 
                     borderColor: '#006EB6',
                     color: '#006EB6',
@@ -574,7 +579,7 @@ function Dashboard({ user, onLogout, updateUser, cart, setCart }) {
                     fontWeight: '500'
                   }}
                 >
-                  Logout
+                  Go Back to Home
                 </Button>
               </Box>
             </Box>

@@ -36,7 +36,7 @@ namespace SnackTracker.Api.Controllers
 
             var snackRequest = new SnackRequest
             {
-                SnackName = createRequest.SnackName,
+                SnackName = createRequest.Name,
                 RequestedByUserId = int.Parse(userId),
                 RequestDate = DateTime.UtcNow,
                 Status = "Pending"
