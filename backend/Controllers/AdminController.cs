@@ -112,6 +112,7 @@ namespace SnackTracker.Api.Controllers
         // --- NEW: SNACK MANAGEMENT ---
 
         // POST: api/admin/snacks
+        // POST: api/admin/snacks
         [HttpPost("snacks")]
         public async Task<ActionResult<Snack>> CreateSnack([FromBody] CreateSnackRequest request)
         {
@@ -121,31 +122,43 @@ namespace SnackTracker.Api.Controllers
             if (request.InitialStock <= 0) return BadRequest("Initial stock must be greater than 0.");
             if (request.TotalCost < 0) return BadRequest("Total cost cannot be negative.");
 
-            // Create the basic snack entity (initially with 0 stock/price, will be updated by service)
-            var newSnack = new Snack
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try 
             {
-                Name = request.Name,
-                ImageUrl = request.ImageUrl,
-                IsAvailable = request.IsAvailable,
-                Stock = 0,
-                Price = 0
-            };
+                // Create the basic snack entity (initially with 0 stock/price, will be updated by service)
+                var newSnack = new Snack
+                {
+                    Name = request.Name,
+                    ImageUrl = request.ImageUrl,
+                    IsAvailable = request.IsAvailable,
+                    Stock = 0,
+                    Price = 0
+                };
 
-            _context.Snacks.Add(newSnack);
-            await _context.SaveChangesAsync(); // Save to get the ID
+                _context.Snacks.Add(newSnack);
+                await _context.SaveChangesAsync(); // Save to get the ID
 
-            // Add the initial batch using the service
-            // This will automatically calculate the unit cost and set the Price/Stock on the Snack entity
-            await _inventoryService.AddBatchAsync(newSnack.SnackId, request.InitialStock, request.TotalCost);
-            
-            // Refresh the snack entity to get updated values
-            // Use AsNoTracking() to bypass the cache and get the fresh data from DB
-            var updatedSnack = await _context.Snacks
-                .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.SnackId == newSnack.SnackId);
+                // Add the initial batch using the service
+                // This will automatically calculate the unit cost and set the Price/Stock on the Snack entity
+                await _inventoryService.AddBatchAsync(newSnack.SnackId, request.InitialStock, request.TotalCost);
+                
+                await transaction.CommitAsync();
 
-            // Return the newly created snack
-            return CreatedAtAction(nameof(GetSnackById), new { id = updatedSnack.SnackId }, updatedSnack);
+                // Refresh the snack entity to get updated values
+                // Use AsNoTracking() to bypass the cache and get the fresh data from DB
+                var updatedSnack = await _context.Snacks
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.SnackId == newSnack.SnackId);
+
+                // Return the newly created snack
+                return CreatedAtAction(nameof(GetSnackById), new { id = updatedSnack.SnackId }, updatedSnack);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { message = "Failed to create snack: " + ex.Message });
+            }
         }
 
         // PUT: api/admin/snacks/{id}
