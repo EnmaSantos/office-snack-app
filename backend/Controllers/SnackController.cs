@@ -40,41 +40,41 @@ namespace SnackTracker.Api.Controllers
             using var dbTransaction = await _context.Database.BeginTransactionAsync();
 
             try
+        {
+            var user = await _context.Users.FindAsync(request.UserId);
+            var snack = await _context.Snacks.FindAsync(request.SnackId);
+
+            if (user == null || snack == null)
             {
-                var user = await _context.Users.FindAsync(request.UserId);
-                var snack = await _context.Snacks.FindAsync(request.SnackId);
+                return NotFound(new { message = "User or Snack not found." });
+            }
 
-                if (user == null || snack == null)
-                {
-                    return NotFound(new { message = "User or Snack not found." });
-                }
-
-                if (snack.Stock <= 0)
-                {
-                    return BadRequest(new { message = "Sorry, this snack is out of stock." });
-                }
+            if (snack.Stock <= 0)
+            {
+                return BadRequest(new { message = "Sorry, this snack is out of stock." });
+            }
 
                 // 1. Deduct Balance
-                user.Balance -= snack.Price;
+            user.Balance -= snack.Price;
 
                 // 2. Consume Stock (Updates Inventory and Price)
                 await _inventoryService.ConsumeStockAsync(snack.SnackId, 1);
 
                 // 3. Record Transaction
-                var transaction = new Transaction
-                {
-                    UserId = user.UserId,
-                    SnackId = snack.SnackId,
-                    TransactionAmount = -snack.Price, // Negative for purchases
-                    Timestamp = DateTime.UtcNow
-                };
+            var transaction = new Transaction
+            {
+                UserId = user.UserId,
+                SnackId = snack.SnackId,
+                TransactionAmount = -snack.Price, // Negative for purchases
+                Timestamp = DateTime.UtcNow
+            };
 
-                _context.Transactions.Add(transaction);
-                await _context.SaveChangesAsync();
+            _context.Transactions.Add(transaction);
+            await _context.SaveChangesAsync();
                 await dbTransaction.CommitAsync();
 
-                return Ok(new { message = "Purchase successful!", newBalance = user.Balance });
-            }
+            return Ok(new { message = "Purchase successful!", newBalance = user.Balance });
+        }
             catch (Exception ex)
             {
                 await dbTransaction.RollbackAsync();
@@ -122,7 +122,7 @@ namespace SnackTracker.Api.Controllers
                 foreach (var snackId in request.SnackIds)
                 {
                     var snack = snacksInCart.First(s => s.SnackId == snackId);
-                    
+
                     // Record transaction using current price
                     var purchaseTransaction = new Transaction
                     {

@@ -50,12 +50,12 @@ function SnackForm({ open, onClose, snack, user, refreshSnacks }) {
     if (isEditing) {
         body = {
           SnackId: snack.SnackId,
-          Name: formData.Name,
-          Price: parseFloat(formData.Price),
-          Stock: parseInt(String(formData.Stock), 10),
-          ImageUrl: formData.ImageUrl || null,
-          IsAvailable: Boolean(formData.IsAvailable),
-        };
+      Name: formData.Name,
+      Price: parseFloat(formData.Price),
+      Stock: parseInt(String(formData.Stock), 10),
+      ImageUrl: formData.ImageUrl || null,
+      IsAvailable: Boolean(formData.IsAvailable),
+    };
     } else {
         // New Snack Payload
         body = {

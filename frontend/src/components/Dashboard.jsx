@@ -119,7 +119,7 @@ function Dashboard({ user, onGoHome, updateUser, cart, setCart }) {
 
   useEffect(() => {
     if (view === 'dashboard') {
-      fetchSnacks();
+    fetchSnacks();
     }
   }, [view]);
 
