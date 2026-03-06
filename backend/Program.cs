@@ -30,6 +30,9 @@ builder.Services.AddDbContext<SnackTrackerContext>(options =>
 // Register Inventory Service
 builder.Services.AddScoped<InventoryService>();
 
+// Register Google Sheets Service
+builder.Services.AddScoped<GoogleSheetsService>();
+
 // --- Add services to the container. ---
 
 // --- SIMPLE COOKIE AUTHENTICATION (uses main site's auth) ---

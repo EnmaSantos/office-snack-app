@@ -114,6 +114,18 @@ namespace SnackTracker.Api.Controllers
                     .ToListAsync();
 
                 decimal totalCost = 0;
+                bool waterDiscountApplied = false;
+
+                // Check if the user already purchased water today
+                // Assuming any snack named exactly "Water" (case-insensitive) applies
+                var hasPurchasedWaterToday = await _context.Transactions
+                    .Include(t => t.Snack)
+                    .AnyAsync(t => 
+                        t.UserId == user.UserId && 
+                        t.Snack != null && 
+                        t.Snack.Name.ToLower() == "water" && 
+                        t.Timestamp.Date == DateTime.UtcNow.Date);
+
                 var purchaseItems = new List<(Snack Snack, decimal PriceAtCheckout)>();
 
                 // First, validate the entire cart before making changes.
@@ -128,9 +140,27 @@ namespace SnackTracker.Api.Controllers
                     {
                         return BadRequest(new { message = $"Sorry, '{snack.Name}' is out of stock." });
                     }
-                    // Capture the price at this moment
-                    totalCost += snack.Price;
-                    purchaseItems.Add((snack, snack.Price));
+
+                    // Apply the "First Water is Free" rule
+                    if (snack.Name.Equals("Water", StringComparison.OrdinalIgnoreCase) && 
+                        !hasPurchasedWaterToday && 
+                        !waterDiscountApplied)
+                    {
+                        // Free water! Don't add to totalCost, record price as 0
+                        waterDiscountApplied = true;
+                        purchaseItems.Add((snack, 0.00m));
+                    }
+                    else
+                    {
+                        totalCost += snack.Price;
+                        purchaseItems.Add((snack, snack.Price));
+                    }
+                }
+
+                // Check for Negative Balance Rule
+                if (user.Balance < totalCost)
+                {
+                    return BadRequest(new { message = $"Insufficient funds. Your balance is {user.Balance:C}, but the cart total is {totalCost:C}." });
                 }
 
                 // All checks passed. Now, execute the changes.

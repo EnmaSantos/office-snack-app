@@ -6,6 +6,7 @@ import UserBalanceManager from './UserBalanceManager';
 import TransactionViewer from './TransactionViewer';
 import ShoppingListModal from './ShoppingListModal';
 import SnackRequestManager from './SnackRequestManager';
+import StoreTrends from './StoreTrends';
 
 // This is the main container for the admin section.
 // It receives 'setView' to allow navigation back to the dashboard.
@@ -42,6 +43,7 @@ function AdminPage({ user, setView }) {
         <Tabs value={currentTab} onChange={handleTabChange} sx={{ mb: 3 }}>
           <Tab label="Snack Management" />
           <Tab label="Snack Requests" />
+          <Tab label="Store Trends" />
           <Tab label="Users" />
           <Tab label="All Transactions" />
         </Tabs>
@@ -67,13 +69,22 @@ function AdminPage({ user, setView }) {
         {currentTab === 2 && (
           <Box>
             <Typography variant="h6" gutterBottom>
+              Store Analytics & Trends
+            </Typography>
+            <StoreTrends user={user} />
+          </Box>
+        )}
+
+        {currentTab === 3 && (
+          <Box>
+            <Typography variant="h6" gutterBottom>
               User Management
             </Typography>
             <UserBalanceManager user={user} />
           </Box>
         )}
 
-        {currentTab === 3 && (
+        {currentTab === 4 && (
           <Box>
             <Typography variant="h6" gutterBottom>
               Transaction History
