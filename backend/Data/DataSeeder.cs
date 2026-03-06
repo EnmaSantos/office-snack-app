@@ -28,24 +28,150 @@ namespace SnackTracker.Api.Data
                 {
                     var desiredSnacks = new List<Snack>
                     {
-                        new Snack { Name = "Assorted Nuts", Price = 0.50M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Chips (Frito, Dorito, Ruffles, Cheetos)", Price = 0.50M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Chocolate Candy Bars (Kinder, M&M, Twix, M&M)", Price = 0.50M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Corn Dogs", Price = 1.00M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Granola Bars", Price = 0.25M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Gummy Bears", Price = 0.25M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Hot Pockets", Price = 0.25M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Jerkey Sticks", Price = 0.75M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Monster Energy Drinks", Price = 1.25M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Oatmeal", Price = 0.25M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Oreos, Chips Ahoy, Nilla Wafers", Price = 0.50M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Popcorn", Price = 0.35M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Pretzels & Goldfish", Price = 0.00M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Protein Bars", Price = 1.50M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Ramen", Price = 0.25M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Rice Krispy", Price = 0.50M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "String Cheese", Price = 0.25M, Stock = 10, IsAvailable = true },
-                        new Snack { Name = "Velveeta Mac n Cheese", Price = 0.00M, Stock = 10, IsAvailable = true },
+                        new Snack 
+                        { 
+                            Name = "Assorted Nuts", 
+                            Price = 0.50M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.50M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Chips (Frito, Dorito, Ruffles, Cheetos)", 
+                            Price = 0.50M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.50M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Chocolate Candy Bars (Kinder, M&M, Twix, M&M)", 
+                            Price = 0.50M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.50M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Corn Dogs", 
+                            Price = 1.00M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 1.00M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Granola Bars", 
+                            Price = 0.25M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.25M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Gummy Bears", 
+                            Price = 0.25M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.25M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Hot Pockets", 
+                            Price = 0.25M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.25M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Jerkey Sticks", 
+                            Price = 0.75M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.75M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Monster Energy Drinks", 
+                            Price = 1.25M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 1.25M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Oatmeal", 
+                            Price = 0.25M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.25M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Oreos, Chips Ahoy, Nilla Wafers", 
+                            Price = 0.50M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.50M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Popcorn", 
+                            Price = 0.35M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.35M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Pretzels & Goldfish", 
+                            Price = 0.00M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.00M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Protein Bars", 
+                            Price = 1.50M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 1.50M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Ramen", 
+                            Price = 0.25M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.25M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Rice Krispy", 
+                            Price = 0.50M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.50M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "String Cheese", 
+                            Price = 0.25M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.25M, PurchaseDate = DateTime.UtcNow } }
+                        },
+                        new Snack 
+                        { 
+                            Name = "Velveeta Mac n Cheese", 
+                            Price = 0.00M, 
+                            Stock = 10, 
+                            IsAvailable = true,
+                            Batches = new List<SnackBatch> { new SnackBatch { QuantityPurchased = 10, QuantityRemaining = 10, UnitCost = 0.00M, PurchaseDate = DateTime.UtcNow } }
+                        },
                     };
 
                     context.Snacks.AddRange(desiredSnacks);

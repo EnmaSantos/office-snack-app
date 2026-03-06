@@ -26,7 +26,7 @@ namespace SnackTracker.Api.Controllers
 
         // POST: api/SnackRequests
         [HttpPost]
-        public async Task<ActionResult<SnackRequest>> PostSnackRequest([FromBody] CreateSnackRequest createRequest)
+        public async Task<ActionResult<SnackRequest>> PostSnackRequest([FromBody] SnackSuggestionRequest createRequest)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)

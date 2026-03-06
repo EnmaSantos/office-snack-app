@@ -1,5 +1,3 @@
-// File: backend/Controllers/SnacksController.cs
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SnackTracker.Api.Data;
@@ -21,6 +19,24 @@ namespace SnackTracker.Api.Controllers
             _inventoryService = inventoryService;
         }
 
+        private async Task<User?> GetAdminFromHeader()
+        {
+            if (!Request.Headers.TryGetValue("X-User-Id", out var userIdValues) || 
+                !int.TryParse(userIdValues.FirstOrDefault(), out var userId))
+            {
+                return null;
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user != null && user.IsAdmin)
+            {
+                return user;
+            }
+
+            return null;
+        }
+
         // GET: api/snacks
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Snack>>> GetSnacks()
@@ -40,41 +56,41 @@ namespace SnackTracker.Api.Controllers
             using var dbTransaction = await _context.Database.BeginTransactionAsync();
 
             try
-        {
-            var user = await _context.Users.FindAsync(request.UserId);
-            var snack = await _context.Snacks.FindAsync(request.SnackId);
-
-            if (user == null || snack == null)
             {
-                return NotFound(new { message = "User or Snack not found." });
-            }
+                var user = await _context.Users.FindAsync(request.UserId);
+                var snack = await _context.Snacks.FindAsync(request.SnackId);
 
-            if (snack.Stock <= 0)
-            {
-                return BadRequest(new { message = "Sorry, this snack is out of stock." });
-            }
+                if (user == null || snack == null)
+                {
+                    return NotFound(new { message = "User or Snack not found." });
+                }
+
+                if (snack.Stock <= 0)
+                {
+                    return BadRequest(new { message = "Sorry, this snack is out of stock." });
+                }
 
                 // 1. Deduct Balance
-            user.Balance -= snack.Price;
+                user.Balance -= snack.Price;
 
                 // 2. Consume Stock (Updates Inventory and Price)
                 await _inventoryService.ConsumeStockAsync(snack.SnackId, 1);
 
                 // 3. Record Transaction
-            var transaction = new Transaction
-            {
-                UserId = user.UserId,
-                SnackId = snack.SnackId,
-                TransactionAmount = -snack.Price, // Negative for purchases
-                Timestamp = DateTime.UtcNow
-            };
+                var transaction = new Transaction
+                {
+                    UserId = user.UserId,
+                    SnackId = snack.SnackId,
+                    TransactionAmount = -snack.Price, // Negative for purchases
+                    Timestamp = DateTime.UtcNow
+                };
 
-            _context.Transactions.Add(transaction);
-            await _context.SaveChangesAsync();
+                _context.Transactions.Add(transaction);
+                await _context.SaveChangesAsync();
                 await dbTransaction.CommitAsync();
 
-            return Ok(new { message = "Purchase successful!", newBalance = user.Balance });
-        }
+                return Ok(new { message = "Purchase successful!", newBalance = user.Balance });
+            }
             catch (Exception ex)
             {
                 await dbTransaction.RollbackAsync();
@@ -86,8 +102,6 @@ namespace SnackTracker.Api.Controllers
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
         {
-            // Use a database transaction. This is a safety net that ensures
-            // ALL operations succeed, or NONE of them do.
             using var dbTransaction = await _context.Database.BeginTransactionAsync();
 
             try
@@ -112,6 +126,8 @@ namespace SnackTracker.Api.Controllers
                         t.Snack.Name.ToLower() == "water" && 
                         t.Timestamp.Date == DateTime.UtcNow.Date);
 
+                var purchaseItems = new List<(Snack Snack, decimal PriceAtCheckout)>();
+
                 // First, validate the entire cart before making changes.
                 foreach (var snackId in request.SnackIds)
                 {
@@ -130,12 +146,14 @@ namespace SnackTracker.Api.Controllers
                         !hasPurchasedWaterToday && 
                         !waterDiscountApplied)
                     {
-                        // Free water! Don't add to totalCost
+                        // Free water! Don't add to totalCost, record price as 0
                         waterDiscountApplied = true;
+                        purchaseItems.Add((snack, 0.00m));
                     }
                     else
                     {
                         totalCost += snack.Price;
+                        purchaseItems.Add((snack, snack.Price));
                     }
                 }
 
@@ -148,37 +166,21 @@ namespace SnackTracker.Api.Controllers
                 // All checks passed. Now, execute the changes.
                 user.Balance -= totalCost;
 
-                // Need to track if we've given the free water so we only give ONE per checkout if they add multiple
-                bool waterDiscountGivenInLoop = false;
-
                 // Process each item
-                foreach (var snackId in request.SnackIds)
+                foreach (var item in purchaseItems)
                 {
-                    var snack = snacksInCart.First(s => s.SnackId == snackId);
-                    
-                    decimal transactionPrice = snack.Price;
-
-                    if (snack.Name.Equals("Water", StringComparison.OrdinalIgnoreCase) && 
-                        !hasPurchasedWaterToday && 
-                        !waterDiscountGivenInLoop)
-                    {
-                        transactionPrice = 0.00m;
-                        waterDiscountGivenInLoop = true;
-                    }
-
-                    // Record transaction using the effective price paid (0 if free water, else current price)
+                    // Record transaction using the price we captured at checkout time
                     var purchaseTransaction = new Transaction
                     {
                         UserId = user.UserId,
-                        SnackId = snack.SnackId,
-                        TransactionAmount = -transactionPrice, 
+                        SnackId = item.Snack.SnackId,
+                        TransactionAmount = -item.PriceAtCheckout, 
                         Timestamp = DateTime.UtcNow
                     };
                     _context.Transactions.Add(purchaseTransaction);
 
                     // Consume stock (this updates the Batch and recalculates Price for NEXT time)
-                    // We await this sequentially to ensure strict ordering of batch consumption
-                    await _inventoryService.ConsumeStockAsync(snackId, 1);
+                    await _inventoryService.ConsumeStockAsync(item.Snack.SnackId, 1);
                 }
 
                 await _context.SaveChangesAsync();
@@ -197,6 +199,9 @@ namespace SnackTracker.Api.Controllers
         [HttpPost("{id}/restock")]
         public async Task<IActionResult> RestockSnack(int id, [FromBody] RestockRequest request)
         {
+            var adminUser = await GetAdminFromHeader();
+            if (adminUser == null) return Unauthorized();
+
             try
             {
                 await _inventoryService.AddBatchAsync(id, request.Quantity, request.TotalCost);
