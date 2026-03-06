@@ -30,8 +30,8 @@ builder.Services.AddDbContext<SnackTrackerContext>(options =>
 // Register Inventory Service
 builder.Services.AddScoped<InventoryService>();
 
-// Register Google Sheets Service
-builder.Services.AddScoped<GoogleSheetsService>();
+// Register Google Sheets Service with HttpClient
+builder.Services.AddHttpClient<GoogleSheetsService>();
 
 // --- Add services to the container. ---
 

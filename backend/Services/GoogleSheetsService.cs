@@ -6,12 +6,14 @@ namespace SnackTracker.Api.Services
     public class GoogleSheetsService
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiKey = "AIzaSyD0wkHBEwtOpTXUD0JDNQDYYVY5ictqoDE";
-        private readonly string _spreadsheetId = "1UfBYzIIix1Wu7XcBNkb6jqopb1ihi5Ymr9ONbDgXAls";
+        private readonly string _apiKey;
+        private readonly string _spreadsheetId;
 
-        public GoogleSheetsService(HttpClient httpClient)
+        public GoogleSheetsService(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
+            _apiKey = configuration["GoogleSheets:ApiKey"] ?? throw new InvalidOperationException("GoogleSheets:ApiKey is not configured.");
+            _spreadsheetId = configuration["GoogleSheets:SpreadsheetId"] ?? throw new InvalidOperationException("GoogleSheets:SpreadsheetId is not configured.");
         }
 
         public async Task<List<string>> GetSheetNamesAsync()
@@ -44,9 +46,11 @@ namespace SnackTracker.Api.Services
 
         public async Task<Dictionary<string, decimal>> GetWeeklyHoursAsync(string sheetName)
         {
-            // Range is just the sheet name. E.g., "W09"
-            var encodedSheetName = Uri.EscapeDataString(sheetName);
-            var url = $"https://sheets.googleapis.com/v4/spreadsheets/{_spreadsheetId}/values/{encodedSheetName}?key={_apiKey}";
+            // Wrap sheet name in single quotes so the API treats it as a tab name,
+            // not a cell reference (e.g., 'W11' sheet vs W11 cell).
+            var quotedRange = $"'{sheetName}'";
+            var encodedRange = Uri.EscapeDataString(quotedRange);
+            var url = $"https://sheets.googleapis.com/v4/spreadsheets/{_spreadsheetId}/values/{encodedRange}?key={_apiKey}";
             
             var response = await _httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();

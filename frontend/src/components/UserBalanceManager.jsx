@@ -32,6 +32,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import WeeklyCreditsModal from './WeeklyCreditsModal';
+import UserDetailView from './UserDetailView';
 
 function UserBalanceManager({ user }) {
   const [users, setUsers] = useState([]);
@@ -45,6 +46,7 @@ function UserBalanceManager({ user }) {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [weeklyCreditsModalOpen, setWeeklyCreditsModalOpen] = useState(false);
+  const [detailViewUser, setDetailViewUser] = useState(null);
 
   // Fetch all user balances
   const fetchUserBalances = async () => {
@@ -95,10 +97,10 @@ function UserBalanceManager({ user }) {
         // Normalize the transaction data
         const normalizedTransactions = data.map(transaction => ({
           TransactionId: transaction.TransactionId || transaction.transactionId,
-          TransactionAmount: transaction.TransactionAmount || transaction.transactionAmount,
+          TransactionAmount: transaction.TransactionAmount ?? transaction.transactionAmount,
           Timestamp: transaction.Timestamp || transaction.timestamp,
           SnackName: transaction.SnackName || transaction.snackName,
-          SnackPrice: transaction.SnackPrice || transaction.snackPrice,
+          SnackPrice: transaction.SnackPrice ?? transaction.snackPrice,
           SnackImageUrl: transaction.SnackImageUrl || transaction.snackImageUrl,
           UserEmail: transaction.UserEmail || transaction.userEmail,
           UserDisplayName: transaction.UserDisplayName || transaction.userDisplayName
@@ -199,6 +201,19 @@ function UserBalanceManager({ user }) {
     );
   }
 
+  // If a user is selected for detail view, render the detail view instead
+  if (detailViewUser) {
+    return (
+      <Box>
+        <UserDetailView
+          selectedUser={detailViewUser}
+          adminUser={user}
+          onBack={() => setDetailViewUser(null)}
+        />
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
@@ -225,7 +240,7 @@ function UserBalanceManager({ user }) {
           </TableHead>
           <TableBody>
             {users.map((userData) => (
-              <TableRow key={userData.UserId}>
+              <TableRow key={userData.UserId} hover onClick={() => setDetailViewUser(userData)} sx={{ cursor: 'pointer' }}>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Avatar 

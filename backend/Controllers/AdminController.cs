@@ -220,6 +220,87 @@ namespace SnackTracker.Api.Controllers
             });
         }
 
+        // GET: api/admin/user-stats/{userId}
+        [HttpGet("user-stats/{userId}")]
+        public async Task<IActionResult> GetUserStats(int userId)
+        {
+            var adminUser = await GetAdminFromHeader();
+            if (adminUser == null) return Unauthorized();
+
+            var userExists = await _context.Users.AnyAsync(u => u.UserId == userId);
+            if (!userExists) return NotFound(new { message = "User not found." });
+
+            try
+            {
+                // Most bought items (grouped by snack, sorted by purchase count)
+                var mostBought = await _context.Transactions
+                    .Where(t => t.UserId == userId && t.SnackId != null && t.TransactionAmount < 0)
+                    .GroupBy(t => t.SnackId)
+                    .Select(g => new
+                    {
+                        SnackId = g.Key,
+                        PurchaseCount = g.Count(),
+                        TotalSpent = g.Sum(t => -t.TransactionAmount)
+                    })
+                    .OrderByDescending(x => x.PurchaseCount)
+                    .Take(10)
+                    .ToListAsync();
+
+                var snackIds = mostBought.Select(m => m.SnackId).ToList();
+                var snackDetails = await _context.Snacks
+                    .Where(s => snackIds.Contains(s.SnackId))
+                    .ToDictionaryAsync(s => s.SnackId, s => new { s.Name, s.ImageUrl });
+
+                var mostBoughtResponse = mostBought.Select(m => new
+                {
+                    SnackId = m.SnackId,
+                    Name = m.SnackId.HasValue && snackDetails.ContainsKey(m.SnackId.Value) 
+                        ? snackDetails[m.SnackId.Value].Name : "Unknown",
+                    ImageUrl = m.SnackId.HasValue && snackDetails.ContainsKey(m.SnackId.Value) 
+                        ? snackDetails[m.SnackId.Value].ImageUrl : null,
+                    PurchaseCount = m.PurchaseCount,
+                    TotalSpent = m.TotalSpent
+                });
+
+                // Daily spending over last 30 days
+                var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
+                var dailySpending = await _context.Transactions
+                    .Where(t => t.UserId == userId && t.TransactionAmount < 0 && t.Timestamp >= thirtyDaysAgo)
+                    .ToListAsync();
+
+                // Group in memory by date (EF Core SQLite can't do date grouping easily)
+                var dailySpendingGrouped = dailySpending
+                    .GroupBy(t => t.Timestamp.Date)
+                    .Select(g => new
+                    {
+                        Date = g.Key.ToString("yyyy-MM-dd"),
+                        Amount = g.Sum(t => -t.TransactionAmount)
+                    })
+                    .OrderBy(x => x.Date)
+                    .ToList();
+
+                // Total stats
+                var totalSpent = await _context.Transactions
+                    .Where(t => t.UserId == userId && t.TransactionAmount < 0)
+                    .SumAsync(t => -t.TransactionAmount);
+
+                var totalPurchases = await _context.Transactions
+                    .CountAsync(t => t.UserId == userId && t.SnackId != null && t.TransactionAmount < 0);
+
+                return Ok(new
+                {
+                    MostBoughtItems = mostBoughtResponse,
+                    DailySpending = dailySpendingGrouped,
+                    TotalSpent = totalSpent,
+                    TotalPurchases = totalPurchases
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error fetching user stats: " + ex.Message });
+            }
+        }
+
 
         // --- NEW: SNACK MANAGEMENT ---
 
@@ -436,7 +517,7 @@ namespace SnackTracker.Api.Controllers
                 // Filter out positive transactions (which are balance additions/credits)
                 var amountSpent = await _context.Transactions
                     .Where(t => t.TransactionAmount < 0)
-                    .SumAsync(t => Math.Abs(t.TransactionAmount));
+                    .SumAsync(t => -t.TransactionAmount);
 
                 // Total Credits Distributed (sum of positive transactions not linked to a specific external payment system)
                 // For simplicity here relative to our requirements, we sum all positive amounts.
@@ -454,7 +535,7 @@ namespace SnackTracker.Api.Controllers
                     {
                         SnackId = g.Key,
                         UnitsSold = g.Count(),
-                        Revenue = g.Sum(t => Math.Abs(t.TransactionAmount))
+                        Revenue = g.Sum(t => -t.TransactionAmount)
                     })
                     .OrderByDescending(x => x.UnitsSold)
                     .Take(5)
