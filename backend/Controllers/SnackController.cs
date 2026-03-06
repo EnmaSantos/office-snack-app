@@ -100,6 +100,18 @@ namespace SnackTracker.Api.Controllers
                     .ToListAsync();
 
                 decimal totalCost = 0;
+                bool waterDiscountApplied = false;
+
+                // Check if the user already purchased water today
+                // Assuming any snack named exactly "Water" (case-insensitive) applies
+                var hasPurchasedWaterToday = await _context.Transactions
+                    .Include(t => t.Snack)
+                    .AnyAsync(t => 
+                        t.UserId == user.UserId && 
+                        t.Snack != null && 
+                        t.Snack.Name.ToLower() == "water" && 
+                        t.Timestamp.Date == DateTime.UtcNow.Date);
+
                 // First, validate the entire cart before making changes.
                 foreach (var snackId in request.SnackIds)
                 {
@@ -112,23 +124,54 @@ namespace SnackTracker.Api.Controllers
                     {
                         return BadRequest(new { message = $"Sorry, '{snack.Name}' is out of stock." });
                     }
-                    totalCost += snack.Price;
+
+                    // Apply the "First Water is Free" rule
+                    if (snack.Name.Equals("Water", StringComparison.OrdinalIgnoreCase) && 
+                        !hasPurchasedWaterToday && 
+                        !waterDiscountApplied)
+                    {
+                        // Free water! Don't add to totalCost
+                        waterDiscountApplied = true;
+                    }
+                    else
+                    {
+                        totalCost += snack.Price;
+                    }
+                }
+
+                // Check for Negative Balance Rule
+                if (user.Balance < totalCost)
+                {
+                    return BadRequest(new { message = $"Insufficient funds. Your balance is {user.Balance:C}, but the cart total is {totalCost:C}." });
                 }
 
                 // All checks passed. Now, execute the changes.
                 user.Balance -= totalCost;
 
+                // Need to track if we've given the free water so we only give ONE per checkout if they add multiple
+                bool waterDiscountGivenInLoop = false;
+
                 // Process each item
                 foreach (var snackId in request.SnackIds)
                 {
                     var snack = snacksInCart.First(s => s.SnackId == snackId);
+                    
+                    decimal transactionPrice = snack.Price;
 
-                    // Record transaction using current price
+                    if (snack.Name.Equals("Water", StringComparison.OrdinalIgnoreCase) && 
+                        !hasPurchasedWaterToday && 
+                        !waterDiscountGivenInLoop)
+                    {
+                        transactionPrice = 0.00m;
+                        waterDiscountGivenInLoop = true;
+                    }
+
+                    // Record transaction using the effective price paid (0 if free water, else current price)
                     var purchaseTransaction = new Transaction
                     {
                         UserId = user.UserId,
                         SnackId = snack.SnackId,
-                        TransactionAmount = -snack.Price, 
+                        TransactionAmount = -transactionPrice, 
                         Timestamp = DateTime.UtcNow
                     };
                     _context.Transactions.Add(purchaseTransaction);

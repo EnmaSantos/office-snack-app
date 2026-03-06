@@ -16,11 +16,13 @@ namespace SnackTracker.Api.Controllers
     {
         private readonly SnackTrackerContext _context;
         private readonly InventoryService _inventoryService;
+        private readonly GoogleSheetsService _googleSheetsService;
 
-        public AdminController(SnackTrackerContext context, InventoryService inventoryService)
+        public AdminController(SnackTrackerContext context, InventoryService inventoryService, GoogleSheetsService googleSheetsService)
         {
             _context = context;
             _inventoryService = inventoryService;
+            _googleSheetsService = googleSheetsService;
         }
 
         // This is our helper method for checking admin status from before.
@@ -44,6 +46,116 @@ namespace SnackTracker.Api.Controllers
 
 
         // --- USER MANAGEMENT ---
+
+        public class DistributeCreditsRequest
+        {
+            public string WeekSheetName { get; set; } = string.Empty;
+        }
+
+        // GET: api/admin/sheet-names
+        [HttpGet("sheet-names")]
+        public async Task<IActionResult> GetGoogleSheetNames()
+        {
+            var adminUser = await GetAdminFromHeader();
+            if (adminUser == null) return Unauthorized();
+
+            try 
+            {
+                var names = await _googleSheetsService.GetSheetNamesAsync();
+                return Ok(names);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error fetching Google Sheets tabs: " + ex.Message });
+            }
+        }
+
+        // POST: api/admin/distribute-weekly-credits
+        [HttpPost("distribute-weekly-credits")]
+        public async Task<IActionResult> DistributeWeeklyCredits([FromBody] DistributeCreditsRequest request)
+        {
+            var adminUser = await GetAdminFromHeader();
+            if (adminUser == null) return Unauthorized();
+
+            if (string.IsNullOrEmpty(request.WeekSheetName))
+            {
+                return BadRequest(new { message = "Sheet name is required." });
+            }
+
+            try
+            {
+                // 1. Fetch data from Google Sheets
+                var weeklyHours = await _googleSheetsService.GetWeeklyHoursAsync(request.WeekSheetName);
+                
+                if (weeklyHours.Count == 0)
+                {
+                    return BadRequest(new { message = $"No hours found in sheet '{request.WeekSheetName}'." });
+                }
+
+                int usersUpdated = 0;
+                decimal totalCreditsDistributed = 0;
+
+                // 2. Wrap in a database transaction
+                using var dbTransaction = await _context.Database.BeginTransactionAsync();
+
+                try
+                {
+                    var allUsers = await _context.Users.ToListAsync();
+
+                    foreach (var kvp in weeklyHours)
+                    {
+                        var sheetName = kvp.Key;
+                        var hours = kvp.Value;
+
+                        // Calculate credits: $1 per 4 hours (rounded down to nearest multiple of 4)
+                        var creditsToAward = Math.Floor(hours / 4.0m) * 1.00m;
+
+                        if (creditsToAward <= 0) continue; // Skip if no credits earned
+
+                        // Attempt to match the user. We match by DisplayName. 
+                        // Note: Depending on data cleanliness, this might need fuzzy matching later
+                        var user = allUsers.FirstOrDefault(u => 
+                            !string.IsNullOrEmpty(u.DisplayName) && 
+                            u.DisplayName.Equals(sheetName, StringComparison.OrdinalIgnoreCase));
+
+                        if (user != null)
+                        {
+                            user.Balance += creditsToAward;
+                            
+                            var depositTransaction = new Transaction
+                            {
+                                UserId = user.UserId,
+                                SnackId = null,
+                                TransactionAmount = creditsToAward,
+                                Timestamp = DateTime.UtcNow
+                            };
+                            _context.Transactions.Add(depositTransaction);
+                            
+                            usersUpdated++;
+                            totalCreditsDistributed += creditsToAward;
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await dbTransaction.CommitAsync();
+
+                    return Ok(new { 
+                        message = "Credits distributed successfully.", 
+                        usersUpdated = usersUpdated, 
+                        totalDistributed = totalCreditsDistributed 
+                    });
+                }
+                catch (Exception dbEx)
+                {
+                    await dbTransaction.RollbackAsync();
+                    throw new Exception("Database update failed.", dbEx);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error distributing credits: " + ex.Message });
+            }
+        }
 
         // GET: api/admin/users
         [HttpGet("users")]
@@ -296,6 +408,104 @@ namespace SnackTracker.Api.Controllers
                 .ToListAsync();
 
             return Ok(transactions);
+        }
+
+        // GET: api/admin/store-trends
+        [HttpGet("store-trends")]
+        public async Task<IActionResult> GetStoreTrends()
+        {
+            var adminUser = await GetAdminFromHeader();
+            if (adminUser == null) return Unauthorized();
+
+            try
+            {
+                // 1. Total Store Revenue (sum of all negative transactions, math.abs them)
+                // Filter out positive transactions (which are balance additions/credits)
+                var amountSpent = await _context.Transactions
+                    .Where(t => t.TransactionAmount < 0)
+                    .SumAsync(t => Math.Abs(t.TransactionAmount));
+
+                // Total Credits Distributed (sum of positive transactions not linked to a specific external payment system)
+                // For simplicity here relative to our requirements, we sum all positive amounts.
+                var creditsAdded = await _context.Transactions
+                    .Where(t => t.TransactionAmount > 0)
+                    .SumAsync(t => t.TransactionAmount);
+
+
+                // 2. Best Sellers
+                // Group purchases by SnackId
+                var bestSellers = await _context.Transactions
+                    .Where(t => t.SnackId != null && t.TransactionAmount <= 0) // Only count actual purchases
+                    .GroupBy(t => t.SnackId)
+                    .Select(g => new
+                    {
+                        SnackId = g.Key,
+                        UnitsSold = g.Count(),
+                        Revenue = g.Sum(t => Math.Abs(t.TransactionAmount))
+                    })
+                    .OrderByDescending(x => x.UnitsSold)
+                    .Take(5)
+                    .ToListAsync();
+
+                // Fetch snack details for the best sellers
+                var topSnackIds = bestSellers.Select(b => b.SnackId).ToList();
+                var topSnacksDetails = await _context.Snacks
+                    .Where(s => topSnackIds.Contains(s.SnackId))
+                    .ToDictionaryAsync(s => s.SnackId, s => s.Name);
+
+                var bestSellersResponse = bestSellers.Select(b => new
+                {
+                    SnackId = b.SnackId,
+                    Name = b.SnackId.HasValue && topSnacksDetails.ContainsKey(b.SnackId.Value) 
+                            ? topSnacksDetails[b.SnackId.Value] : "Unknown",
+                    UnitsSold = b.UnitsSold,
+                    Revenue = b.Revenue
+                });
+
+                // 3. Stagnant Inventory (Items in stock but not sold recently, or ever)
+                // Get all active snacks
+                var activeSnacks = await _context.Snacks
+                    .Where(s => s.IsAvailable && s.Stock > 0)
+                    .ToListAsync();
+
+                // Find the date of the last transaction for each snack
+                var lastSoldDates = await _context.Transactions
+                    .Where(t => t.SnackId != null && t.TransactionAmount <= 0)
+                    .GroupBy(t => t.SnackId)
+                    .Select(g => new
+                    {
+                        SnackId = g.Key.Value,
+                        LastSold = g.Max(t => t.Timestamp)
+                    })
+                    .ToDictionaryAsync(x => x.SnackId, x => x.LastSold);
+
+                var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
+
+                var stagnantInventory = activeSnacks
+                    .Where(s => !lastSoldDates.ContainsKey(s.SnackId) || lastSoldDates[s.SnackId] < thirtyDaysAgo)
+                    .Select(s => new
+                    {
+                        SnackId = s.SnackId,
+                        Name = s.Name,
+                        CurrentStock = s.Stock,
+                        LastSoldDate = lastSoldDates.ContainsKey(s.SnackId) ? (DateTime?)lastSoldDates[s.SnackId] : null
+                    })
+                    .OrderByDescending(s => s.CurrentStock)
+                    .Take(10)
+                    .ToList();
+
+                return Ok(new
+                {
+                    TotalRevenue = amountSpent,
+                    TotalCreditsDistributed = creditsAdded,
+                    BestSellers = bestSellersResponse,
+                    StagnantInventory = stagnantInventory
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error generating store trends: " + ex.Message });
+            }
         }
 
         // --- SHOPPING LIST MANAGEMENT ---

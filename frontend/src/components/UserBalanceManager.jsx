@@ -30,6 +30,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import { API_BASE_URL } from '../config';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import WeeklyCreditsModal from './WeeklyCreditsModal';
 
 function UserBalanceManager({ user }) {
   const [users, setUsers] = useState([]);
@@ -42,6 +44,7 @@ function UserBalanceManager({ user }) {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [weeklyCreditsModalOpen, setWeeklyCreditsModalOpen] = useState(false);
 
   // Fetch all user balances
   const fetchUserBalances = async () => {
@@ -198,6 +201,17 @@ function UserBalanceManager({ user }) {
 
   return (
     <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Button
+          variant="contained"
+          color="secondary"
+          startIcon={<AttachMoneyIcon />}
+          onClick={() => setWeeklyCreditsModalOpen(true)}
+        >
+          Distribute Weekly Credits
+        </Button>
+      </Box>
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -383,6 +397,13 @@ function UserBalanceManager({ user }) {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+
+      <WeeklyCreditsModal
+        open={weeklyCreditsModalOpen}
+        onClose={() => setWeeklyCreditsModalOpen(false)}
+        user={user}
+        refreshUsers={fetchUserBalances}
+      />
     </Box>
   );
 }
