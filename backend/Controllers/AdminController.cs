@@ -136,6 +136,16 @@ namespace SnackTracker.Api.Controllers
                         }
                     }
 
+                    // Log the manual distribution to prevent auto-distribution for this week
+                    _context.DistributionLogs.Add(new DistributionLog
+                    {
+                        WeekSheetName = request.WeekSheetName,
+                        DistributedAt = DateTime.UtcNow,
+                        UsersUpdated = usersUpdated,
+                        TotalAmount = totalCreditsDistributed,
+                        IsAutomatic = false
+                    });
+
                     await _context.SaveChangesAsync();
                     await dbTransaction.CommitAsync();
 

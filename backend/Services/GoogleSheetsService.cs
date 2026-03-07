@@ -80,5 +80,40 @@ namespace SnackTracker.Api.Services
 
             return result;
         }
+
+        /// <summary>
+        /// Reads cell D1 from a sheet tab to get the Monday date for that week.
+        /// Returns null if the cell is empty or the date can't be parsed.
+        /// </summary>
+        public async Task<DateTime?> GetMondayDateFromSheetAsync(string sheetName)
+        {
+            var range = $"'{sheetName}'!D1";
+            var encodedRange = Uri.EscapeDataString(range);
+            var url = $"https://sheets.googleapis.com/v4/spreadsheets/{_spreadsheetId}/values/{encodedRange}?key={_apiKey}";
+
+            var response = await _httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode) return null;
+
+            var content = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(content);
+
+            if (doc.RootElement.TryGetProperty("values", out var values))
+            {
+                var rows = values.EnumerateArray().ToArray();
+                if (rows.Length > 0 && rows[0].GetArrayLength() > 0)
+                {
+                    var dateStr = rows[0][0].GetString()?.Trim();
+                    // Format: M/d/yyyy (e.g., 3/9/2026)
+                    if (DateTime.TryParseExact(dateStr, new[] { "M/d/yyyy", "MM/dd/yyyy", "M/dd/yyyy", "MM/d/yyyy" },
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var date))
+                    {
+                        return date;
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 }

@@ -33,6 +33,9 @@ builder.Services.AddScoped<InventoryService>();
 // Register Google Sheets Service with HttpClient
 builder.Services.AddHttpClient<GoogleSheetsService>();
 
+// Register the scheduled weekly credit distribution background job
+builder.Services.AddHostedService<WeeklyCreditDistributionJob>();
+
 // --- Add services to the container. ---
 
 // --- SIMPLE COOKIE AUTHENTICATION (uses main site's auth) ---

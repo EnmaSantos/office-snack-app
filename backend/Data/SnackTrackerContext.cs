@@ -30,5 +30,8 @@ namespace SnackTracker.Api.Data
 
         // This will create a 'SnackBatches' table to track inventory batches.
         public DbSet<SnackBatch> SnackBatches { get; set; }
+
+        // This will create a 'DistributionLogs' table to track weekly credit distributions.
+        public DbSet<DistributionLog> DistributionLogs { get; set; }
     }
 }
