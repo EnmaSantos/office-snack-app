@@ -16,7 +16,7 @@ let _dbPath: string = '';
 export async function initDb(): Promise<void> {
   if (_db) return;
 
-  _dbPath = path.resolve(__dirname, '..', process.env.DATABASE_PATH || '../backend/SnackTracker.db');
+  _dbPath = path.resolve(process.cwd(), process.env.DATABASE_PATH || './SnackTracker.db');
   
   // Provide the WASM binary path explicitly
   const wasmPath = path.join(
