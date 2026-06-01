@@ -47,7 +47,7 @@ async function main(): Promise<void> {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id', 'Cookie'],
   }));
 
-  // Session (cookie-based, replacing .NET cookie auth)
+  // Session cookie used by the snack API.
   app.use(session({
     secret: process.env.SESSION_SECRET || 'dev-secret-change-me',
     resave: false,

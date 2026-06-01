@@ -1,4 +1,4 @@
-// User routes — mirrors UsersController.cs
+// User routes.
 import { Router, Request, Response } from 'express';
 import { get, all, run } from '../db';
 

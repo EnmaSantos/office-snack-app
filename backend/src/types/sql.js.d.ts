@@ -29,6 +29,8 @@ declare module 'sql.js' {
     values: any[][];
   }
 
-  function initSqlJs(): Promise<SqlJsStatic>;
+  function initSqlJs(config?: {
+    locateFile?: (file: string) => string;
+  }): Promise<SqlJsStatic>;
   export = initSqlJs;
 }

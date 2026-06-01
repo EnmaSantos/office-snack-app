@@ -1,4 +1,4 @@
-// Snack routes — mirrors SnackController.cs
+// Snack routes.
 import { Router, Request, Response } from 'express';
 import { get, all, run } from '../db';
 import { consumeStock, addBatch } from '../services/inventoryService';
@@ -159,7 +159,7 @@ router.post('/:id/restock', (req: Request, res: Response) => {
   if (!adminUser) return res.status(401).json({ message: 'Unauthorized' });
 
   try {
-    const snackId = parseInt(req.params.id);
+    const snackId = Number(req.params.id);
     const { Quantity, TotalCost } = req.body;
     addBatch(snackId, Quantity, TotalCost);
     res.json({ message: 'Restock successful. Price updated.' });

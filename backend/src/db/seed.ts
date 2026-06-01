@@ -9,7 +9,7 @@ interface SeedSnack {
 }
 
 /**
- * Ensure all tables exist. Schema matches the EF Core migrations exactly.
+ * Ensure all tables exist. Schema matches the snack app data model.
  */
 function createTables(): void {
   exec(`
@@ -73,7 +73,7 @@ function createTables(): void {
 
 /**
  * Seed default snacks if the Snacks table is empty.
- * Matches the C# DataSeeder exactly.
+ * Seeds the default snack catalog.
  */
 function seedSnacks(): void {
   const count = get('SELECT COUNT(*) as cnt FROM Snacks');

@@ -1,4 +1,4 @@
-// Snack Requests routes — mirrors SnackRequestsController.cs
+// Snack request routes.
 import { Router, Request, Response } from 'express';
 import { get, all, run, lastInsertRowId } from '../db';
 
@@ -12,7 +12,7 @@ router.get('/', (_req: Request, res: Response) => {
      LEFT JOIN Users u ON sr.RequestedByUserId = u.UserId`
   );
 
-  // Format to match .NET Include() shape
+  // Format nested user data for the frontend API contract.
   res.json(requests.map(r => ({
     Id: r.Id,
     SnackName: r.SnackName,
@@ -52,7 +52,7 @@ router.post('/', (req: Request, res: Response) => {
 
 // PUT: /api/snackrequests/:id
 router.put('/:id', (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
+  const id = Number(req.params.id);
   const existing = get('SELECT * FROM SnackRequests WHERE Id = ?', [id]);
 
   if (!existing) {
@@ -71,7 +71,7 @@ router.put('/:id', (req: Request, res: Response) => {
 
 // DELETE: /api/snackrequests/:id
 router.delete('/:id', (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
+  const id = Number(req.params.id);
   const existing = get('SELECT * FROM SnackRequests WHERE Id = ?', [id]);
 
   if (!existing) {

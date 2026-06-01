@@ -1,4 +1,4 @@
-// Admin routes — mirrors AdminController.cs
+// Admin routes.
 import { Router, Request, Response } from 'express';
 import { get, all, run, lastInsertRowId } from '../db';
 import { addBatch } from '../services/inventoryService';
@@ -157,7 +157,7 @@ router.get('/user-stats/:userId', (req: Request, res: Response) => {
   const admin = getAdminFromHeader(req);
   if (!admin) return res.status(401).json({ message: 'Unauthorized' });
 
-  const userId = parseInt(req.params.userId);
+  const userId = Number(req.params.userId);
   const userExists = get('SELECT UserId FROM Users WHERE UserId = ?', [userId]);
   if (!userExists) return res.status(404).json({ message: 'User not found.' });
 
@@ -258,7 +258,7 @@ router.put('/snacks/:id', (req: Request, res: Response) => {
   const admin = getAdminFromHeader(req);
   if (!admin) return res.status(401).json({ message: 'Unauthorized' });
 
-  const id = parseInt(req.params.id);
+  const id = Number(req.params.id);
   const { SnackId, Name, Price, Stock, ImageUrl, IsAvailable } = req.body;
 
   if (id !== SnackId) {
@@ -281,7 +281,7 @@ router.delete('/snacks/:id', (req: Request, res: Response) => {
   const admin = getAdminFromHeader(req);
   if (!admin) return res.status(401).json({ message: 'Unauthorized' });
 
-  const id = parseInt(req.params.id);
+  const id = Number(req.params.id);
   const existing = get('SELECT * FROM Snacks WHERE SnackId = ?', [id]);
   if (!existing) return res.status(404).json({ message: 'Snack not found.' });
 
@@ -291,7 +291,7 @@ router.delete('/snacks/:id', (req: Request, res: Response) => {
 
 // GET: /api/admin/snacks/:id
 router.get('/snacks/:id', (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
+  const id = Number(req.params.id);
   const snack = get('SELECT * FROM Snacks WHERE SnackId = ?', [id]);
   if (!snack) return res.status(404).json({ message: 'Snack not found.' });
 
@@ -328,7 +328,7 @@ router.get('/user-transactions/:userId', (req: Request, res: Response) => {
   const admin = getAdminFromHeader(req);
   if (!admin) return res.status(401).json({ message: 'Unauthorized' });
 
-  const userId = parseInt(req.params.userId);
+  const userId = Number(req.params.userId);
   const userExists = get('SELECT UserId FROM Users WHERE UserId = ?', [userId]);
   if (!userExists) return res.status(404).json({ message: 'User not found.' });
 

@@ -1,4 +1,4 @@
-// Auth routes — mirrors AuthController.cs
+// Auth routes.
 import { Router, Request, Response } from 'express';
 import { get, run, lastInsertRowId } from '../db';
 
@@ -21,7 +21,7 @@ interface MainSiteAuthStatus {
   };
 }
 
-/** Format a user row for JSON response (PascalCase to match .NET output). */
+/** Format a user row for the frontend API contract. */
 function formatUser(user: Record<string, any>) {
   return {
     UserId: user.UserId,
@@ -122,7 +122,7 @@ router.get('/signout', (req: Request, res: Response) => {
 
 // POST: /api/auth/toggle-admin/:userId (DEV ONLY)
 router.post('/toggle-admin/:userId', (req: Request, res: Response) => {
-  const userId = parseInt(req.params.userId);
+  const userId = Number(req.params.userId);
   const user = get('SELECT * FROM Users WHERE UserId = ?', [userId]);
 
   if (!user) {
