@@ -6,35 +6,27 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 Office Snack App is a full-stack web application for tracking office snack purchases with Google OAuth authentication. It consists of:
 
-- **Backend**: ASP.NET Core 9.0 Web API with Entity Framework and SQLite
+- **Backend**: Node.js + Express API with sql.js-backed SQLite
 - **Frontend**: React 19 + Vite with Material-UI components
 
 ## Development Commands
 
-### Backend (.NET API)
+### Backend (Node.js API)
 ```bash
 # Navigate to backend directory
 cd backend
 
-# Restore dependencies
-dotnet restore
+# Install dependencies
+npm install
 
 # Run the API server (Development)
-dotnet run
+npm run dev
 
 # Build the project
-dotnet build
+npm run build
 
-# Clean build artifacts
-dotnet clean
-
-# Database migrations
-dotnet ef migrations add <MigrationName>
-dotnet ef database update
-
-# Run with specific profile
-dotnet run --launch-profile http    # HTTP only (port 5106)
-dotnet run --launch-profile https   # HTTPS + HTTP (ports 7162/5106)
+# Run production entrypoint
+npm start
 ```
 
 ### Frontend (React + Vite)
@@ -61,7 +53,7 @@ npm run lint
 ### Full Application Development
 ```bash
 # Terminal 1: Start backend API
-cd backend && dotnet run
+cd backend && npm run dev
 
 # Terminal 2: Start frontend dev server
 cd frontend && npm run dev
@@ -70,15 +62,15 @@ cd frontend && npm run dev
 ## Architecture Overview
 
 ### Backend Architecture
-- **Controllers**: REST API endpoints in `Controllers/` directory
-  - `SnacksController`: Snack inventory and purchase operations
-  - `UsersController`: User management and balance operations  
-  - `AuthController`: Google OAuth authentication flow
-  - `AdminController`: Administrative functions
-- **Models**: Data entities (`User`, `Snack`, `Transaction`) in `Models/`
-- **Data Layer**: Entity Framework context and seeding in `Data/`
-- **Authentication**: Cookie-based auth with Google OAuth integration
-- **Database**: SQLite with Entity Framework migrations
+- **Routes**: REST API endpoints in `backend/src/routes`
+  - `snacks.js`: Snack inventory and purchase operations
+  - `users.js`: User management and balance operations
+  - `auth.js`: Main-site cookie sync and session flow
+  - `admin.js`: Administrative functions
+- **Services**: Inventory, Google Sheets, and weekly credit logic in `backend/src/services`
+- **Data Layer**: SQLite setup, query helpers, and seeding in `backend/src/db`
+- **Authentication**: Cookie-based session auth integrated with the main site
+- **Database**: SQLite file created automatically at startup
 
 ### Frontend Architecture  
 - **React 19**: Main UI framework with functional components and hooks
@@ -90,7 +82,7 @@ cd frontend && npm run dev
 ### Key Integration Points
 - **CORS Configuration**: Backend allows `http://localhost:5173` (Vite dev server)
 - **Authentication Flow**: Frontend redirects to `/api/auth/signin-google`, backend handles OAuth and returns user data via URL parameters
-- **API Communication**: Frontend makes requests to `http://localhost:5106/api/*` endpoints
+- **API Communication**: Frontend makes requests to `http://localhost:3000/api/*` endpoints
 - **User Persistence**: User data stored in localStorage and synced with backend
 
 ### Database Schema
@@ -101,7 +93,7 @@ cd frontend && npm run dev
 ## Configuration Notes
 
 ### Backend Configuration
-- **Default Ports**: HTTP (5106), HTTPS (7162)
+- **Default Port**: HTTP 3000
 - **Database**: SQLite file (`SnackTracker.db`) created automatically
 - **Seeding**: Automatic database seeding with sample data on startup
 - **Authentication**: Requires Google OAuth credentials in configuration
@@ -114,19 +106,9 @@ cd frontend && npm run dev
 - **State Persistence**: User authentication state persisted in localStorage
 
 ### Authentication Setup
-Google OAuth requires configuration in `appsettings.json` or user secrets:
-```json
-{
-  "Authentication": {
-    "Google": {
-      "ClientId": "your-client-id",
-      "ClientSecret": "your-client-secret"
-    }
-  }
-}
-```
-
-For development, use `dotnet user-secrets` to store sensitive values.
+Local configuration lives in `backend/.env`. Start from `backend/.env.example`
+and set values such as `SESSION_SECRET`, `FRONTEND_URL`, `MAIN_SITE_URL`, and
+the Google Sheets API settings.
 
 ### Domain Restrictions
 The application is configured to only allow `@byui.edu` email addresses for authentication.

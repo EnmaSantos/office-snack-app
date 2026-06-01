@@ -5,8 +5,8 @@ The Office Snack App is a full-stack web application designed to manage an offic
 
 **Tech Stack:**
 - **Frontend:** React (Vite), Material UI
-- **Backend:** .NET 8/9 Web API, Entity Framework Core
-- **Database:** SQLite
+- **Backend:** Node.js, Express
+- **Database:** SQLite via sql.js
 
 ---
 
@@ -100,9 +100,9 @@ This ensures that "cheap" stock bought months ago is sold at a price reflecting 
 ## 4. Technical Architecture
 
 ### Backend Structure
-- **Controllers:** Handle HTTP requests (`SnackController`, `AdminController`).
-- **Services:** `InventoryService` contains the complex pricing and FIFO logic.
-- **Data Layer:** EF Core manages the SQLite database.
+- **Routes:** Handle HTTP requests in `backend/src/routes`.
+- **Services:** `inventoryService` contains the complex pricing and FIFO logic.
+- **Data Layer:** `backend/src/db` manages the SQLite database.
   - `Snacks` Table: Stores current aggregate stock and display price.
   - `SnackBatches` Table: Stores the granular history of every purchase.
   - `Transactions` Table: Immutable log of every balance change.
@@ -117,18 +117,19 @@ This ensures that "cheap" stock bought months ago is sold at a price reflecting 
 ## 5. Deployment Guide
 
 ### Prerequisites
-- .NET 8.0 SDK or later
 - Node.js 18+
 
 ### Running Locally
 1. **Backend:**
    ```bash
    cd backend
-   dotnet run
+   npm install
+   npm run dev
    ```
 2. **Frontend:**
    ```bash
    cd frontend
+   npm install
    npm run dev
    ```
 3. Access at `http://localhost:5173`.
