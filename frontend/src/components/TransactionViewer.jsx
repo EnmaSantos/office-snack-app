@@ -40,10 +40,10 @@ function TransactionViewer({ user }) {
         const normalizedTransactions = data.map(transaction => ({
           TransactionId: transaction.TransactionId || transaction.transactionId,
           UserId: transaction.UserId || transaction.userId,
-          TransactionAmount: transaction.TransactionAmount || transaction.transactionAmount,
+          TransactionAmount: transaction.TransactionAmount ?? transaction.transactionAmount,
           Timestamp: transaction.Timestamp || transaction.timestamp,
           SnackName: transaction.SnackName || transaction.snackName,
-          SnackPrice: transaction.SnackPrice || transaction.snackPrice,
+          SnackPrice: transaction.SnackPrice ?? transaction.snackPrice,
           SnackImageUrl: transaction.SnackImageUrl || transaction.snackImageUrl,
           UserEmail: transaction.UserEmail || transaction.userEmail,
           UserDisplayName: transaction.UserDisplayName || transaction.userDisplayName

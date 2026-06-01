@@ -1,18 +1,8 @@
 # Dependencies
 node_modules/
-frontend/node_modules/
 
-# Visual Studio generated files
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-.vs/
-
-# Build results
-[Bb]in/
-[Oo]bj/
-backend/publish/
+# Build output
+dist/
 
 # Rider files
 .idea/
@@ -29,5 +19,5 @@ backend/publish/
 *.db
 *.db-shm
 *.db-wal
-backend/SnackTracker.db
+
 **/.env.production

@@ -1,0 +1,32 @@
+{
+  "name": "snacktracker-api",
+  "version": "1.0.0",
+  "description": "Office Snack Tracker API - Node.js/TypeScript backend",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "node-cron": "^3.0.3",
+    "pdfkit": "^0.15.1",
+    "sql.js": "^1.11.0"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.1",
+    "@types/node": "^22.13.0",
+    "@types/node-cron": "^3.0.11",
+    "@types/pdfkit": "^0.13.8",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
